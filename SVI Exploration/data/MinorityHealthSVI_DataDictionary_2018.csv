@@ -1,0 +1,151 @@
+Variable or Abbreviation,Description,Measure,Notes,Theme,Source,Date,US Census Bureau American Community Survey Reference
+GRASP_ID,Unique ID for database administration,Unique ID,,Not used in index,,,
+ST,State FIPS code,Geography,Must be converted to text field of length 2 with leading zeros,Not used in index,US Census Bureau Cartographic Boundary Files,,
+STATE,State name,Geography,,Not used in index,US Census Bureau Cartographic Boundary Files,,
+ST_ABBR,State abbreviation,Geography,,Not used in index,US Census Bureau Cartographic Boundary Files,,
+COUNTY,County name,Geography,,Not used in index,US Census Bureau Cartographic Boundary Files,,
+FIPS,County FIPS code,Geography,Must be converted to text field of length 5 with leading zeros,Not used in index,US Census Bureau Cartographic Boundary Files,,
+E_TOTPOP,Total Population,Estimate,,Not used in index,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,S0601_C01_001
+E_HU,Housing units,Estimate,,Not used in index,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP04_0001
+E_HH,Households,Estimate,,Not used in index,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP02_0001
+E_POV,Persons below poverty,Estimate,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B17001_002
+E_UNEMP,Civilian age 16+ unemployed,Estimate,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP03_0005
+E_PCI,Per capita income,Estimate,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B19301_001
+E_NOHSDP,Persons age 25+ with no high school diploma,Estimate,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B06009_002
+E_AGE65,Persons age 65 and older,Estimate,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,S0101_C01_030
+E_AGE17,Persons age 17 and younger,Estimate,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B09001_001
+E_DISABL,Civilian noninstitutionalized population with a disability,Estimate,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP02_0071
+E_SNGPNT,Single parent household with children under 18,Estimate,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,"DP02_0007, DP02_0009"
+E_AIAN,American Indian and Alaska Native,Estimate,,Theme 3,US Census Bureau US Census Bureau American Community Survey,2014-2018,DP05_0039
+E_ASIAN,Asian,Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0044
+E_AFAM,African American or Black,Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0038
+E_NHPI,Native Hawaiian/Pacific Islander,Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0052
+E_HISP,Hispanic or Latino/a,Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0071
+E_OTHER,Some Other Race Alone,Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,B02001_007
+E_SPAN,"Spanish speakers who speak English less than ""very well""",Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_005
+E_CHIN,"Chinese speakers who speak English less than ""very well""",Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_068
+E_VIET,"Vietnamese speakers who speak English less than ""very well"" ",Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_089
+E_KOR,"Korean speakers who speak English less than ""very well""",Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_074
+E_RUS,"Russian speakers who speak English less than ""very well""",Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_035
+E_MUNIT,Housing in structures with 10 or more units,Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,"DP04_0012, DP04_0013"
+E_MOBILE,Mobile homes,Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP04_0014
+E_CROWD,"At household level (occupied housing units), more people than rooms",Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,"DP04_0078, DP04_0079"
+E_NOVEH,Households with no vehicle available,Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP04_0058
+E_GROUPQ,Persons in group quarters,Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B26001_001
+HOSP,Hospitals ,Count,,Theme 5,Homeland Infrastructure Foundation Level Data Open,2017,
+URG,Urgent care clinics  ,Count,,Theme 5,Homeland Infrastructure Foundation Level Data Open,2017,
+PHARM,Pharmacies ,Count,,Theme 5,Homeland Infrastructure Foundation Level Data Open,2017,
+PCP,Primary care physicians,,"Primary Care Physicians working in Patient Care, Non-Federal",Theme 5,Health Resources and Services Administration Area Health Resource Files,2018,
+E_UNINSUR,Persons without health insurance,Estimate,,Theme 5,US Census Bureau American Community Survey,2014-2018,S2701_C05_001
+E_NOINT,No Internet access,Estimate,,Theme 6,US Census Bureau American Community Survey,2014-2018,B28002_013
+E_TOTPOP,Total Population,Margin of Error,,Not used in index,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,S0601_C01_001
+M_HU,Housing units,Margin of Error,,Not used in index,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP04_0001
+M_HH,Households,Margin of Error,,Not used in index,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP02_0001
+M_POV,Persons below poverty,Margin of Error,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B17001_002
+M_UNEMP,Civilian age 16+ unemployed,Margin of Error,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP03_0005
+M_PCI,Per capita income,Margin of Error,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B19301_001
+M_NOHSDP,Persons age 25+ with no high school diploma,Margin of Error,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B06009_002
+M_AGE65,Persons age 65 and older,Margin of Error,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,S0101_C01_030
+M_AGE17,Persons age 17 and younger,Margin of Error,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B09001_001
+M_DISABL,Civilian noninstitutionalized population with a disability,Margin of Error,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP02_0071
+M_SNGPNT,Single parent household with children under 18,Margin of Error,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,"DP02_0007, DP02_0009"
+M_AIAN,American Indian and Alaska Native,Margin of Error,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0039
+M_ASIAN,Asian,Margin of Error,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0044
+M_AFAM,African American or Black,Margin of Error,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0038
+M_NHPI,Native Hawaiian/Pacific Islander,Margin of Error,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0052
+M_HISP,Hispanic or Latino/a,Margin of Error,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0071
+M_OTHER,Some Other Race Alone,Margin of Error,,Theme 3,US Census Bureau American Community Survey,2014-2018,B02001_007
+M_SPAN,"Spanish speakers who speak English less than ""very well""",Margin of Error,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_005
+M_CHIN,"Chinese speakers who speak English less than ""very well""",Margin of Error,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_068
+M_VIET,"Vietnamese speakers who speak English less than ""very well"" ",Margin of Error,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_089
+M_KOR,"Korean speakers who speak English less than ""very well""",Margin of Error,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_074
+M_RUS,"Russian speakers who speak English less than ""very well""",Margin of Error,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_035
+M_MUNIT,Housing in structures with 10 or more units,Margin of Error,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,"DP04_0012, DP04_0013"
+M_MOBILE,Mobile homes,Margin of Error,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP04_0014
+M_CROWD,"At household level (occupied housing units), more people than rooms",Margin of Error,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,"DP04_0078, DP04_0079"
+M_NOVEH,Households with no vehicle available,Margin of Error,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP04_0058
+M_GROUPQ,Persons in group quarters,Margin of Error,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B26001_001
+M_UNINSUR,Persons without health insurance,Margin of Error,,Theme 5,US Census Bureau American Community Survey,2014-2018,S2701_C05_001
+M_NOINT,No Internet access,Margin of Error,,Theme 6,US Census Bureau American Community Survey,2014-2018,B28002_013
+EP_POV,Persons below poverty,Percentage Estimate,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B17001_002
+EP_UNEMP,Civilian age 16+ unemployed,Percentage Estimate,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP03_0005
+EP_PCI,Per capita income,Percentage Estimate,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B19301_001
+EP_NOHSDP,Persons age 25+ with no high school diploma,Percentage Estimate,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B06009_002
+EP_AGE65,Persons age 65 and older,Percentage Estimate,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,S0101_C01_030
+EP_AGE17,Persons age 17 and younger,Percentage Estimate,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B09001_001
+EP_DISABL,Civilian noninstitutionalized population with a disability,Percentage Estimate,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP02_0071
+EP_SNGPNT,Single parent household with children under 18,Percentage Estimate,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,"DP02_0007, DP02_0009"
+EP_AIAN,American Indian and Alaska Native,Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0039
+EP_ASIAN,Asian,Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0044
+EP_AFAM,African American or Black,Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0038
+EP_NHPI,Native Hawaiian/Pacific Islander,Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0052
+EP_HISP,Hispanic or Latino/a,Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0071
+EP_OTHER,Some Other Race Alone,Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,B02001_007
+EP_SPAN,"Spanish speakers who speak English less than ""very well""",Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_005
+EP_CHIN,"Chinese speakers who speak English less than ""very well""",Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_068
+EP_VIET,"Vietnamese speakers who speak English less than ""very well"" ",Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_089
+EP_KOR,"Korean speakers who speak English less than ""very well""",Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_074
+EP_RUS,"Russian speakers who speak English less than ""very well""",Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_035
+EP_MUNIT,Housing in structures with 10 or more units,Percentage Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,"DP04_0012, DP04_0013"
+EP_MOBILE,Mobile homes,Percentage Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP04_0014
+EP_CROWD,"At household level (occupied housing units), more people than rooms",Percentage Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,"DP04_0078, DP04_0079"
+EP_NOVEH,Households with no vehicle available,Percentage Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,DP04_0058
+EP_GROUPQ,Persons in group quarters,Percentage Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2014-2018,B26001_001
+R_HOSP,"Hospitals per 100,000",Rate,,Theme 5,Homeland Infrastructure Foundation Level Data Open,2017,
+R_URG,"Urgent care clinics per 100,000",Rate,,Theme 5,Homeland Infrastructure Foundation Level Data Open,2017,
+R_PHARM,"Pharmacies per 100,000",Rate,,Theme 5,Homeland Infrastructure Foundation Level Data Open,2017,
+R_PCP,Primary care physicians,Rate,"Primary Care Physicians working in Patient Care, Non-Federal",Theme 5,Health Resources and Services Administration Area Health Resource Files,2018,
+EP_UNINSUR,Persons without health insurance,Percentage Estimate,,Theme 5,US Census Bureau American Community Survey,2014-2018,S2701_C05_001
+ER_CARDIO,"Total Cardiovascular Disease Death Rate per 100,000",Rate,Age-adjusted (not-smoothed),Theme 6,Centers for Disease Control and Prevention Interactive Atlas of Heart Disease and Stroke,2014-2016,
+ER_DIAB,Diagnosed Diabetes; Total (Total); Adults Aged 20+ Years,Rate,Age-Adjusted,Theme 6,"US Diabetes Surveillance System, Centers for Disease Control and Prevention Division of Diabetes Translation",2016,
+ER_OBES,Obesity; Total (Total); Adults Aged 20+ Years,Rate,Age-Adjusted,Theme 6,"US Diabetes Surveillance System, Centers for Disease Control and Prevention Division of Diabetes Translation",2016,
+ER_RESPD,Chronic respiratory diseases,Rate,"Chronic obstructive pulmonary disease, Pneumoconiosis, Silicosis,Asbestosis, Coal workers pneumoconiosis, Other pneumoconiosis, Asthma, Interstitial lung disease and pulmonary sarcoidosis, Other chronic respiratory diseases. Age-standardized 2014 mortality rate, per 100,000 population ",Theme 6,Institute for Health Metrics and Evaluation,2014,
+EP_NOINT,No Internet access,Percentage Estimate,,Theme 6,US Census Bureau American Community Survey,2014-2018,B28002_013
+EPL_POV,Persons below poverty,Percentile of Percentage Estimate,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2018,B17001_002
+EPL_UNEMP,Civilian age 16+ unemployed,Percentile of Percentage Estimate,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2018,DP03_0005
+EPL_PCI,Per capita income,Percentile of Percentage Estimate,Necessarily reversed as higher values equate with low vulnerability and vice versa.,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2018,B19301_001
+EPL_NOHSDP,Persons age 25+ with no high school diploma,Percentile of Percentage Estimate,,Theme 1,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2018,B06009_002
+EPL_AGE65,Persons age 65 and older,Percentile of Percentage Estimate,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2018,S0101_C01_030
+EPL_AGE17,Persons age 17 and younger,Percentile of Percentage Estimate,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2018,B09001_001
+EPL_DISABL,Civilian noninstitutionalized population with a disability,Percentile of Percentage Estimate,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2018,DP02_0071
+EPL_SNGPNT,Single parent household with children under 18,Percentile of Percentage Estimate,,Theme 2,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2018,"DP02_0007, DP02_0009"
+EPL_AIAN,American Indian and Alaska Native,Percentile of Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0039
+EPL_ASIAN,Asian,Percentile of Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0044
+EPL_AFAM,African American or Black,Percentile of Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0038
+EPL_NHPI,Native Hawaiian/Pacific Islander,Percentile of Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0052
+EPL_HISP,Hispanic or Latino/a,Percentile of Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,DP05_0071
+EPL_OTHER,Some Other Race Alone,Percentile of Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2014-2018,B02001_007
+EPL_SPAN,"Spanish speakers who speak English less than ""very well""",Percentile of Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_005
+EPL_CHIN,"Chinese speakers who speak English less than ""very well""",Percentile of Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_068
+EPL_VIET,"Vietnamese speakers who speak English less than ""very well"" ",Percentile of Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_089
+EPL_KOR,"Korean speakers who speak English less than ""very well""",Percentile of Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_074
+EPL_RUS,"Russian speakers who speak English less than ""very well""",Percentile of Percentage Estimate,,Theme 3,US Census Bureau American Community Survey,2011-2015,B16001_035
+EPL_MUNIT,Housing in structures with 10 or more units,Percentile of Percentage Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2018,"DP04_0012, DP04_0013"
+EPL_MOBILE,Mobile homes,Percentile of Percentage Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2018,DP04_0014
+EPL_CROWD,"At household level (occupied housing units), more people than rooms",Percentile of Percentage Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2018,"DP04_0078, DP04_0079"
+EPL_NOVEH,Households with no vehicle available,Percentile of Percentage Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2018,DP04_0058
+EPL_GROUPQ,Persons in group quarters,Percentile of Percentage Estimate,,Theme 4,Centers for Disease Control and Prevention/Agency for Toxic Substances and Disease Registry Social Vulnerability Index,2018,B26001_001
+PL_HOSP,Hospitals,Percentile of Rate,Necessarily reversed as higher values equate with low vulnerability and vice versa.,Theme 5,Homeland Infrastructure Foundation Level Data Open,2017,
+PL_URG,Urgent care clinics,Percentile of Rate,Necessarily reversed as higher values equate with low vulnerability and vice versa.,Theme 5,Homeland Infrastructure Foundation Level Data Open,2017,
+PL_PHARM,Pharmacies,Percentile of Rate,Necessarily reversed as higher values equate with low vulnerability and vice versa.,Theme 5,Homeland Infrastructure Foundation Level Data Open,2017,
+PL_PCP,Primary care physicians,Percentile of Floating Catchment Access Score,Necessarily reversed as higher values equate with low vulnerability and vice versa.,Theme 5,Health Resources and Services Administration Area Health Resource Files,2018,
+EPL_UNINSUR,Persons without health insurance,Percentile of Rate,,Theme 5,US Census Bureau American Community Survey,2014-2018,S2701_C05_001
+EPL_CARDIO,"Total Cardiovascular Disease Death Rate per 100,000",Percentile of Rate,Age-adjusted (not-smoothed),Theme 6,Centers for Disease Control and Prevention Interactive Atlas of Heart Disease and Stroke,2014-2016,
+EPL_DIAB,Diagnosed Diabetes; Total (Total); Adults Aged 20+ Years,Percentile of Rate,Age-Adjusted,Theme 6,"US Diabetes Surveillance System, Centers for Disease Control and Prevention Division of Diabetes Translation",2016,
+EPL_OBES,Obesity; Total (Total); Adults Aged 20+ Years,Percentile of Rate,Age-Adjusted,Theme 6,"US Diabetes Surveillance System, Centers for Disease Control and Prevention Division of Diabetes Translation",2016,
+EPL_RESPD,Chronic respiratory diseases,Percentile of Rate,"Chronic obstructive pulmonary disease, Pneumoconiosis, Silicosis,Asbestosis, Coal workers pneumoconiosis, Other pneumoconiosis, Asthma, Interstitial lung disease and pulmonary sarcoidosis, Other chronic respiratory diseases. Age-standardized 2014 mortality rate, per 100,000 population ",Theme 6,Institute for Health Metrics and Evaluation,2014,
+EPL_NOINT,No Internet access,Percentile of Percentage Estimate,,Theme 6,US Census Bureau American Community Survey,2014-2018,B28002_013
+SPL_THEME1,Sum of series; Theme 1,,,,Minority Health Social Vulnerability Index,,
+SPL_THEME2,Sum of series; Theme 2,,,,Minority Health Social Vulnerability Index,,
+SPL_THEME3,Sum of series; Theme 3,,,,Minority Health Social Vulnerability Index,,
+SPL_THEME4,Sum of series; Theme 4,,,,Minority Health Social Vulnerability Index,,
+SPL_THEME5,Sum of series; Theme 5,,,,Minority Health Social Vulnerability Index,,
+SPL_THEME6,Sum of series; Theme 6,,,,Minority Health Social Vulnerability Index,,
+SPL_THEMES,Sum of series themes,,,,Minority Health Social Vulnerability Index,,
+RPL_THEME1,Percentile ranking; Theme 1,,,,Minority Health Social Vulnerability Index,,
+RPL_THEME2,Percentile ranking; Theme 2,,,,Minority Health Social Vulnerability Index,,
+RPL_THEME3,Percentile ranking; Theme 3,,,,Minority Health Social Vulnerability Index,,
+RPL_THEME4,Percentile ranking; Theme 4,,,,Minority Health Social Vulnerability Index,,
+RPL_THEME5,Percentile ranking; Theme 5,,,,Minority Health Social Vulnerability Index,,
+RPL_THEME6,Percentile ranking; Theme 6,,,,Minority Health Social Vulnerability Index,,
+RPL_THEMES,Overall percentile ranking,,,,Minority Health Social Vulnerability Index,,

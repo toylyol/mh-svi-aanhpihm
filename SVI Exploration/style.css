@@ -1,0 +1,73 @@
+/* 
+
+Purpose: To ensure there is no weird indent when multi-line titles are wrapped in TOC 
+
+Source 1: https://github.com/rstudio/rmarkdown/issues/997
+
+	See how to change H2.
+
+Source 2: https://github.com/rstudio/rmarkdown/issues/1909
+
+	See how to change all headings.
+
+*/
+
+
+
+.tocify-header {
+  text-indent: initial;
+}
+
+.tocify-subheader > .tocify-item {
+  text-indent: initial;
+  padding-left: 20px;
+}
+
+.tocify-subheader .tocify-subheader > .tocify-item {
+  text-indent: initial;
+  padding-left: 30px;
+}
+
+.tocify-subheader .tocify-subheader .tocify-subheader > .tocify-item {
+  text-indent: initial;
+  padding-left: 40px;
+}
+
+.tocify-subheader .tocify-subheader .tocify-subheader > .tocify-item {
+  text-indent: initial;
+  padding-left: 50px;
+}
+
+/* 
+
+Purpose: To change the heading font sizes
+
+Source 1: https://github.com/rstudio/rmarkdown/issues/652
+
+Source 2: https://github.com/rstudio/rmarkdown/commit/d8c027763b29348abce76213a5dd9dcd7144ccd6
+
+	This is the GH issue that allowed custom CSS to override R Markdown theme.
+
+Source 3: https://www.w3schools.com/css/css_font_size.asp
+
+	See how to change heading font size in CSS.
+
+Source: https://stackoverflow.com/questions/5410066/what-are-the-default-font-sizes-in-pixels-for-the-html-heading-tags-h1-h2
+
+	See how browser determines default heading font size.
+
+*/
+
+
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 28px;
+}
+h3 {
+  font-size: 22px;
+}
