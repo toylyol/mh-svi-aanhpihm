@@ -31,6 +31,25 @@
 # }
 
 
+# Explore correlations ----
+
+exploreCoor <- function(df, var_name){
+  
+  df %>%
+    ggplot() +
+    geom_point(aes(x = {{var_name}}, y = RPL_THEMES)) +
+    theme_minimal()
+  
+}           
+
+# There are no correlations for any of the variables!
+
+cor(x = h_sv_df$EPL_ASIAN, y = h_sv_df$RPL_THEMES, method = c("spearman")) # This confirms that there is no correlation.
+
+
+# See all about calculating correlation in R here: http://www.sthda.com/english/wiki/correlation-test-between-two-variables-in-r
+
+
 # Create all-MH SVI choropleth ----
 # The following code does not work due to the {farver} install issues (scale_fill_viridis is the culprit):
 

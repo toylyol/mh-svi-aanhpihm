@@ -655,6 +655,16 @@ ggsave(filename = "asian_map.svg",
 
 ```
 
+
+```{r exploring-quartiles}
+
+# Exploring the data in quartiles ---- 
+
+
+
+```
+
+
 ```{r notes-for-analyst, eval = FALSE}
 
 # Technical Issues ----
