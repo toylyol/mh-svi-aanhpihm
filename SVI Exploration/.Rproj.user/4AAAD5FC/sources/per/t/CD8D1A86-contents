@@ -1,0 +1,64 @@
+---
+title: "MH SVI Coronavirus Brief"
+author: "Toyin"
+date: "2023-04-28"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, comment = NA, include = FALSE, cache = FALSE)
+
+```
+
+The latest [USAFacts.org coronavirus data](https://usafacts.org/issues/coronavirus) that is available for download is dated April 17, 2023. Both COVID case and death data are available. See the [methodology](https://usafacts.org/articles/detailed-methodology-covid-19-data/) for details about how it was collected.
+
+There are several interesting [related articles](https://usafacts.org/articles/category/coronavirus/), including an [article](https://usafacts.org/articles/who-has-long-covid-heres-the-data-by-gender/) written indicating that transgender people had the highest rates of Long COVID based on data from the U.S. Census Bureau's [Week 52 Household Pulse Survey](https://www.census.gov/data/tables/2023/demo/hhp/hhp52.html). There is an [article](https://usafacts.org/articles/these-races-are-the-most-likely-to-develop-long-covid/) examining prevalence and severity of Long COVID by race. Another [article](https://usafacts.org/articles/covid-19-death-data-shows-racial-disparities-during-the-pandemic/) uses [CDC data](https://data.cdc.gov/NCHS/Distribution-of-COVID-19-Deaths-and-Populations-by/jwta-jxbg) to highlight disproportionate deaths among racial minorities.
+
+```{r}
+
+# The following functions are courtesy of a Stats and R blog post: https://statsandr.com/blog/an-efficient-way-to-install-and-load-r-packages/
+
+
+# List required packages ----
+
+packages <- c("tidyverse", "here")
+
+
+# Load all required packages
+
+invisible( lapply(packages, library, character.only = TRUE) )
+
+
+# Save base path to vector
+
+path <- here()
+
+mh_svi_2018 <- read_csv( here("data", "mh_svi_county_2018.csv") )
+
+covid_usafacts <- read_csv(here("data", "covid_confirmed_usafacts.csv"))
+
+pop_usafacts <- read_csv(here("data", "covid_county_population_usafacts.csv"))
+
+compare_pop <- mh_svi_2018 %>%
+  select(ST_ABBR, COUNTY, FIPS, E_TOTPOP) %>%
+  left_join(pop_usafacts, by = c("FIPS" = "countyFIPS"))
+
+
+
+
+# The only character columns are County Name, State, and StateFIPS.
+
+# covid_usafacts <- covid_usafacts %>%
+#     mutate( CountyFIPS = ifelse(StateFIPS < 10,               # add leading zero to county FIPS as needed
+#                             paste0("0", CountyFIPS),
+#                             FIPS)
+#           )
+
+https://www.nebraskamed.com/COVID/how-to-calculate-covid-19-stats-for-your-area#case_fatality_rate
+https://www.nebraskamed.com/COVID/how-to-calculate-covid-19-stats-for-your-area#positive_cases_per_capita
+
+```
+

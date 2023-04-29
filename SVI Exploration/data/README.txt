@@ -6,4 +6,4 @@
 
 "SVI2018_US.csv" is the US-wide 2018 SVI Census tract dataset.
 
-""SVI2018_US_COUNTY.csv is US-wide 2018 SVI county dataset.
+"SVI2018_US_COUNTY.csv" is US-wide 2018 SVI county dataset.
