@@ -625,7 +625,7 @@ ggsave(filename = "high_sv_map.svg",
 
 # Create a function to create choropleth maps for individual variables ---
 
-targetedMap <- function(var_name, low_color, high_color, ...){
+targetedMap <- function(var_name, low_color, high_color, stoke_width = 0.5 ...){
   
   ggplot() +
     geom_sf(data = high_sv_counties_shifted,
@@ -636,7 +636,7 @@ targetedMap <- function(var_name, low_color, high_color, ...){
                         high = {{high_color}},
                         na.value = "gray97") +
     geom_sf(data = filter(high_sv_counties_shifted, .data[[var_name]] > params$var_threshold),
-            size = 0.5,
+            size = {{stoke_width}},
             alpha = 0) +                                         # make top layer zero opacity
     labs(title = var_name) +
     theme_void() +
@@ -655,14 +655,153 @@ ggsave(filename = "asian_map.svg",
 
 ```
 
+```{r use-omh-custom-palette, eval = FALSE}
 
-```{r exploring-quartiles}
+# These function are courtesy of Nicola Rennie's March 2023 R-Ladies Cambridge talk on creating custom color scales: https://nrennie.rbind.io/talks/rladies-cambridge-ggplot2-colours/
 
-# Exploring the data in quartiles ---- 
+# Define colors to be included in palette ----
+
+my_colors = list( omh_colors = c("#7bc043", "#f68e1d", "#a5429c", "#0057a1") )
 
 
+# Create palette with custom colors ----
+
+my_palettes = function(palette_name,
+                       n,
+                       type = c("discrete", "continuous")) {
+  palette = my_colors[[palette_name]]
+  if (missing(n)) {
+    n = length(palette)
+  }
+  type = match.arg(type)
+  out = switch(type,
+               continuous = grDevices::colorRampPalette(palette)(n),
+               discrete = palette[1:n]
+  )
+  structure(out, palette_name = palette_name, class = "palette")
+}
+
+
+# Test new my_palettes function
+# my_palettes("omh_colors", n = 6, type = "continuous")
+
+
+# Make scale function ----
+
+scale_fill_mycols_c = function(palette_name, ...) {
+  ggplot2::scale_fill_gradientn(
+    colors = my_palettes(palette_name, type = "continuous"), ...)
+}
+
+
+# Make all-MH SVI choropleth map ----
+
+us_counties_data_shifted %>%
+  ggplot() +
+  geom_sf(aes(fill = RPL_THEMES,
+              shape = "No data\nare available."),
+          size = 0.1) +
+  scale_fill_mycols_c(name = "Overall Minority Health\nSocial Vulnerability",
+                       palette = "omh_colors", 
+                       labels = scales::percent_format(),
+                       na.value = "gray87") +
+  scale_shape(guide = "legend") +                                   # use to ensure override.aes() accepted
+  guides(shape = guide_legend(title = NULL,                         # reinforce that there should be no legend title
+                              override.aes = list(fill = "gray87",  # add NA value to legend
+                                                  title = NULL,
+                                                  label = FALSE,
+                                                  order = 2,
+                                                  color = "transparent")), # change stroke color in legend
+         fill = guide_colorbar(title.position = "top",                          # code courtesy of Cédric Scherer
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1) 
+  ) +
+  theme_void() +
+  theme(legend.text = element_text(size = 10,                  # ensure that no-data message is gray font
+                                   color = "gray27"),
+        legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",   # ensure transparent bg upon saving 
+                                       color = NA)
+  )
+
+ggsave(filename = "overall_mh_svi_map_omh_colors.svg",
+       height = 5.66, width = 9.05,
+       units = "in" )           
+
+
+# Make high-SVI choropleth map ----
+
+high_sv_counties_shifted %>%
+  ggplot() +
+  geom_sf( aes(fill = RPL_THEMES),
+           size = 0.1) +
+  scale_fill_mycols_c(name = "High Social Vulnerability\n(90th percentile or higher)",
+                       palette = "omh_colors", 
+                       labels = scales::percent_format(),
+                       na.value = "gray97") +                   # use gray97 for to be consistent with subsequent tables
+  guides(fill = guide_colorbar(title.position = "top",                          
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1)) +
+  theme_void() +
+  theme(legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",     
+                                       color = NA)
+  )
+
+ggsave(filename = "high_sv_map_omh_colors.svg",
+       height = 5.66, width = 9.05,
+       units = "in")                 # saves to default 9.05x5.66 in
+
+
+# Create a function to create choropleth maps for individual variables ---
+
+targetedMap <- function(var_name, low_color, high_color, stroke_width = 0.5, ...){
+  
+  ggplot() +
+    geom_sf(data = high_sv_counties_shifted,
+            aes(fill = ifelse(.data[[var_name]] < params$var_threshold,  # treat values under 0.89 for EPL_ASIAN as NA
+                              NA, .data[[var_name]])),
+            size = 0.1) +
+    scale_fill_gradient(low = {{low_color}},           # specify the same HEX code for low and high value in gradient
+                        high = {{high_color}},
+                        na.value = "gray97") +
+    geom_sf(data = filter(high_sv_counties_shifted, .data[[var_name]] > params$var_threshold),
+            size = {{stroke_width}},
+            alpha = 0) +                                         # make top layer zero opacity
+    labs(title = var_name) +
+    theme_void() +
+    theme(legend.position = "none",
+          plot.background = element_rect(fill = "transparent",   # ensure transparent bg upon saving
+                                         color = NA)
+    )
+  
+}
+
+targetedMap("EPL_ASIAN", "#a5429c", "#a5429c", stroke_width = 0.1) 
+
+ggsave(filename = "asian_map_omh_colors.svg",
+       height = 5.66, width = 9.05,
+       units = "in")
+
+
+targetedMap("EPL_NHPI", "#0057a1", "#0057a1", stroke_width = 0.1) 
+
+ggsave(filename = "nhpi_map_omh_colors.svg",
+       height = 5.66, width = 9.05,
+       units = "in")
 
 ```
+
 
 
 ```{r notes-for-analyst, eval = FALSE}
