@@ -1,0 +1,125 @@
+
+# One color palette option using both template colors as a starting point is ["#98bddd", "#2480a1", "#2f4fb4", "#1c2c64"]. See aanhpi_option2.
+# A second color palette option using only the darkest template color (#192c64) as a starting point is ["#46ebdc", "#6ec1f8", "#15729c", "#1c2c64"]. See aanhpi_option3
+
+# These function are courtesy of Nicola Rennie's March 2023 R-Ladies Cambridge talk on creating custom color scales: https://nrennie.rbind.io/talks/rladies-cambridge-ggplot2-colours/
+
+# Define colors to be included in palette ----
+
+my_colors = list( omh_colors = c("#7bc043", "#f68e1d", "#a5429c", "#0057a1"),
+                  aanhpi_option1 = c("#2d4fb4","#192c64"),
+                  aanhpi_option2 = c("#98bddd", "#2480a1", "#2f4fb4", "#1c2c64"),
+                  aanhpi_option3 = c("#46ebdc", "#6ec1f8", "#15729c", "#1c2c64")
+                )
+
+
+# Create palette with custom colors ----
+
+my_palettes = function(palette_name,
+                       n,
+                       type = c("discrete", "continuous")) {
+  palette = my_colors[[palette_name]]
+  if (missing(n)) {
+    n = length(palette)
+  }
+  type = match.arg(type)
+  out = switch(type,
+               continuous = grDevices::colorRampPalette(palette)(n),
+               discrete = palette[1:n]
+  )
+  structure(out, palette_name = palette_name, class = "palette")
+}
+
+
+# Make scale function ----
+
+scale_fill_mycols_c = function(palette_name, ...) {
+  ggplot2::scale_fill_gradientn(
+    colors = my_palettes(palette_name, type = "continuous"), ...)
+}
+
+
+
+# Make all-MH SVI choropleth map ----
+
+us_counties_data_shifted %>%
+  ggplot() +
+  geom_sf(aes(fill = RPL_THEMES,
+              shape = "No data\nare available."),
+          size = 0.1) +
+  scale_fill_mycols_c(name = "Overall Minority Health\nSocial Vulnerability",
+                      palette = "aanhpi_option3", 
+                      labels = scales::percent_format(),
+                      na.value = "gray87") +
+  scale_shape(guide = "legend") +                                   # use to ensure override.aes() accepted
+  guides(shape = guide_legend(title = NULL,                         # reinforce that there should be no legend title
+                              override.aes = list(fill = "gray87",  # add NA value to legend
+                                                  title = NULL,
+                                                  label = FALSE,
+                                                  order = 2,
+                                                  color = "transparent")), # change stroke color in legend
+         fill = guide_colorbar(title.position = "top",                          # code courtesy of Cédric Scherer
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1) 
+  ) +
+  theme_void() +
+  theme(legend.text = element_text(size = 10,                  # ensure that no-data message is gray font
+                                   color = "gray27"),
+        legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",   # ensure transparent bg upon saving 
+                                       color = NA)
+  )
+
+ggsave(filename = "overall_mh_svi_map_template3.svg",
+       height = 5.66, width = 9.05,
+       units = "in" )           
+
+
+# Make high-SVI choropleth map ----
+
+high_sv_counties_shifted %>%
+  ggplot() +
+  geom_sf( aes(fill = RPL_THEMES),
+           size = 0.1) +
+  scale_fill_mycols_c(name = "High Social Vulnerability\n(90th percentile or higher)",
+                      palette = "aanhpi_option3", 
+                      labels = scales::percent_format(),
+                      na.value = "gray97") +                   # use gray97 for to be consistent with subsequent tables
+  guides(fill = guide_colorbar(title.position = "top",                          
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1)) +
+  theme_void() +
+  theme(legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",     
+                                       color = NA)
+  )
+
+ggsave(filename = "high_sv_map_template3.svg",
+       height = 5.66, width = 9.05,
+       units = "in")                 # saves to default 9.05x5.66 in
+
+
+# Create targeted choropleth maps for individual variables ---
+
+targetedMap("EPL_ASIAN", "#192c64", "#192c64", stroke_width = 0.1) 
+
+ggsave(filename = "asian_map_template.svg",
+       height = 5.66, width = 9.05,
+       units = "in")
+
+
+targetedMap("EPL_NHPI", "#2d4fb4", "#2d4fb4", stroke_width = 0.1) 
+
+ggsave(filename = "nhpi_map_template.svg",
+       height = 5.66, width = 9.05,
+       units = "in")
