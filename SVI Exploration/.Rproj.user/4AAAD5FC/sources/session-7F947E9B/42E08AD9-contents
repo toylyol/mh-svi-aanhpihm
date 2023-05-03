@@ -625,7 +625,7 @@ ggsave(filename = "high_sv_map.svg",
 
 # Create a function to create choropleth maps for individual variables ---
 
-targetedMap <- function(var_name, low_color, high_color, stoke_width = 0.5 ...){
+targetedMap <- function(var_name, low_color, high_color, stroke_width = 0.5, ...){
   
   ggplot() +
     geom_sf(data = high_sv_counties_shifted,
@@ -636,7 +636,7 @@ targetedMap <- function(var_name, low_color, high_color, stoke_width = 0.5 ...){
                         high = {{high_color}},
                         na.value = "gray97") +
     geom_sf(data = filter(high_sv_counties_shifted, .data[[var_name]] > params$var_threshold),
-            size = {{stoke_width}},
+            size = {{stroke_width}},
             alpha = 0) +                                         # make top layer zero opacity
     labs(title = var_name) +
     theme_void() +
@@ -763,29 +763,7 @@ ggsave(filename = "high_sv_map_omh_colors.svg",
        units = "in")                 # saves to default 9.05x5.66 in
 
 
-# Create a function to create choropleth maps for individual variables ---
-
-targetedMap <- function(var_name, low_color, high_color, stroke_width = 0.5, ...){
-  
-  ggplot() +
-    geom_sf(data = high_sv_counties_shifted,
-            aes(fill = ifelse(.data[[var_name]] < params$var_threshold,  # treat values under 0.89 for EPL_ASIAN as NA
-                              NA, .data[[var_name]])),
-            size = 0.1) +
-    scale_fill_gradient(low = {{low_color}},           # specify the same HEX code for low and high value in gradient
-                        high = {{high_color}},
-                        na.value = "gray97") +
-    geom_sf(data = filter(high_sv_counties_shifted, .data[[var_name]] > params$var_threshold),
-            size = {{stroke_width}},
-            alpha = 0) +                                         # make top layer zero opacity
-    labs(title = var_name) +
-    theme_void() +
-    theme(legend.position = "none",
-          plot.background = element_rect(fill = "transparent",   # ensure transparent bg upon saving
-                                         color = NA)
-    )
-  
-}
+# Create targeted choropleth maps for individual variables ---
 
 targetedMap("EPL_ASIAN", "#a5429c", "#a5429c", stroke_width = 0.1) 
 
@@ -802,7 +780,122 @@ ggsave(filename = "nhpi_map_omh_colors.svg",
 
 ```
 
+```{r use-color-palette-from-actual-tool}
 
+# Make all-MH SVI choropleth map ----
+
+all_mh_svi_map <- us_counties_data_shifted %>%
+  ggplot() +
+  geom_sf(aes(fill = RPL_THEMES,
+              shape = "No data\nare available."),
+          size = 0.1) +
+  scale_fill_distiller(name = "Overall Minority Health\nSocial Vulnerability",
+                      palette = "BuPu", 
+                      direction = 1,
+                      labels = scales::percent_format(),
+                      na.value = "gray87") +
+  scale_shape(guide = "legend") +                                   # use to ensure override.aes() accepted
+  guides(shape = guide_legend(title = NULL,                         # reinforce that there should be no legend title
+                              override.aes = list(fill = "gray87",  # add NA value to legend
+                                                  title = NULL,
+                                                  label = FALSE,
+                                                  order = 2,
+                                                  color = "transparent")), # change stroke color in legend
+         fill = guide_colorbar(title.position = "top",                          # code courtesy of Cédric Scherer
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1) 
+  ) +
+  theme_void() +
+  theme(legend.text = element_text(size = 10,                  # ensure that no-data message is gray font
+                                   color = "gray27"),
+        legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",   # ensure transparent bg upon saving 
+                                       color = NA)
+  )
+
+ggsave(filename = "overall_mh_svi_map_BuPu.svg",
+       height = 5.66, width = 9.05,
+       units = "in" )           
+
+
+# Make high-SVI choropleth map ----
+
+high_svi_map <- high_sv_counties_shifted %>%
+  ggplot() +
+  geom_sf( aes(fill = RPL_THEMES),
+           size = 0.1) +
+  scale_fill_distiller(name = "High Social Vulnerability\n(90th percentile or higher)",
+                      palette = "BuPu", 
+                      direction = 1,
+                      labels = scales::percent_format(),
+                      na.value = "gray97") +                   # use gray97 for to be consistent with subsequent tables
+  guides(fill = guide_colorbar(title.position = "top",                          
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1)) +
+  theme_void() +
+  theme(legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",     
+                                       color = NA)
+  )
+
+ggsave(filename = "high_sv_map_BuPu.svg",
+       height = 5.66, width = 9.05,
+       units = "in")                 # saves to default 9.05x5.66 in
+
+
+# Create targeted choropleth maps for individual variables ---
+
+high_svi_asian_map <- targetedMap("EPL_ASIAN", "#8856a7", "#8856a7", stroke_width = 0.1) 
+
+ggsave(filename = "asian_map_BuPu.svg",
+       height = 5.66, width = 9.05,
+       units = "in")
+
+
+high_svi_nhpi_map <- targetedMap("EPL_NHPI", "#810f7c", "#810f7c", stroke_width = 0.1) 
+
+ggsave(filename = "nhpi_map_BuPu.svg",
+       height = 5.66, width = 9.05,
+       units = "in")
+
+
+# Generate additional targeted maps highlighting states for presentation ----
+
+targetedStateMap <- function(var_name, state_name, low_color, high_color, stroke_width = 0.5, ...){
+  
+  ggplot() +
+    geom_sf(data = high_sv_counties_shifted,
+            aes(fill = ifelse(.data[[var_name]] < params$var_threshold,  # treat values under 0.89 for var-n as NA
+                             NA, .data[[var_name]])),
+            size = 0.1) +
+    scale_fill_gradient(low = {{low_color}},                     # specify the same HEX code for gradient
+                        high = {{high_color}},
+                        na.value = "gray97") +
+    geom_sf(data = {{state_name}},
+            size = {{stroke_width}},
+            alpha = 0) +                                         # make top layer zero opacity
+    labs(title = var_name) +
+    theme_void() +
+    theme(legend.position = "none",
+          plot.background = element_rect(fill = "transparent",   # ensure transparent bg upon saving
+                                      color = NA)
+          )
+
+}
+
+# TODO: Download shapefiles for CA and TX.
+
+```
 
 ```{r notes-for-analyst, eval = FALSE}
 
