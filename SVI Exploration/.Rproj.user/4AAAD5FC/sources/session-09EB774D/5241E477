@@ -1,0 +1,27 @@
+{
+    "id": "5241E477",
+    "path": "~/GitHub/mh-svi/SVI Exploration/MH SVI Exploration.Rmd",
+    "project_path": "MH SVI Exploration.Rmd",
+    "type": "r_markdown",
+    "hash": "0",
+    "contents": "",
+    "dirty": true,
+    "created": 1683544467978.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "chunk_output_type": "console",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "878,51",
+        "scrollLine": "866"
+    },
+    "folds": "591|41|621|0|\n",
+    "lastKnownWriteTime": 1683123323,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1683664623951,
+    "read_only": false,
+    "read_only_alternatives": []
+}

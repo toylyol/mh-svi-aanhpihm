@@ -1,0 +1,104 @@
+---
+title: "MH SVI Coronavirus Brief"
+author: "Toyin"
+date: "2023-04-28"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, comment = NA, include = FALSE, cache = FALSE)
+
+```
+
+The latest [USAFacts.org coronavirus data file](https://usafacts.org/issues/coronavirus) that is available for download is dated April 17, 2023. Both COVID case and death data are available. See the [methodology](https://usafacts.org/articles/detailed-methodology-covid-19-data/) for details about how it was collected.
+
+There are several interesting [related articles](https://usafacts.org/articles/category/coronavirus/), including an [article](https://usafacts.org/articles/who-has-long-covid-heres-the-data-by-gender/) indicating that transgender people had the highest rates of Long COVID based on data from the U.S. Census Bureau's [Week 52 Household Pulse Survey](https://www.census.gov/data/tables/2023/demo/hhp/hhp52.html). There is also an [article](https://usafacts.org/articles/these-races-are-the-most-likely-to-develop-long-covid/) examining prevalence and severity of Long COVID by race. Another [article](https://usafacts.org/articles/covid-19-death-data-shows-racial-disparities-during-the-pandemic/) uses [CDC COVID-19 distribution data](https://data.cdc.gov/NCHS/Distribution-of-COVID-19-Deaths-and-Populations-by/jwta-jxbg) to highlight disproportionate deaths among racial minorities.
+
+Though the Household Pulse Survey data are available on [CDC.Data.gov](https://data.cdc.gov/NCHS/Post-COVID-Conditions/gsea-w83j), the most comprehensive information on the HPS is available on the [U.S. Census Bureau's website](https://www.census.gov/data/experimental-data-products/household-pulse-survey.html).There are [public use files](https://www.census.gov/programs-surveys/household-pulse-survey/datasets.html) for each administration period as well as an [interactive tool](https://www.census.gov/data-tools/demo/hhp/#/). There is a helpful landing page where all [HPS-related publications](https://www.census.gov/programs-surveys/household-pulse-survey/research-presentations.html). The most recent HPS-related America Counts story is [*Hispanic, Black Adults More Likely to Report Long COVID-19 Symptoms*](https://www.census.gov/library/stories/2023/05/long-covid-19-symptoms-reported.html) from May 1, 2023; it links to a [2021 whitepaper](https://www.census.gov/content/dam/Census/library/working-papers/2021/demo/sehsd-wp2021-16.pdf) on "multidimensional hardship."
+
+The key themes in this data brief are: SVI, Long COVID, and intersectionality.
+
+```{r load-packages-and-data, echo = FALSE, massage = FALSE, warning = FALSE}
+
+# The following functions are courtesy of a Stats and R blog post: https://statsandr.com/blog/an-efficient-way-to-install-and-load-r-packages/
+
+
+# List and load required packages ----
+
+packages <- c("tidyverse", "here")
+
+invisible( lapply(packages, library, character.only = TRUE) )
+
+
+# Save base path to vector ----
+
+path <- here()
+
+
+# Load data ----
+
+mh_svi_2018 <- read_csv( here("data", "mh_svi_county_2018.csv"),
+                         show_col_types = FALSE)    # note chr vars: STATE, ST_ABBR, COUNTY
+
+covid_usafacts <- read_csv(here("data", "covid_confirmed_usafacts.csv"),
+                           show_col_types = FALSE)  # note chr vars: County Name, State, and StateFIP
+
+pop_usafacts <- read_csv(here("data", "covid_county_population_usafacts.csv"),
+                         show_col_types = FALSE)    # note chr vars: County Name, State
+
+```
+
+```{r calculate-pos-cases-per-capita}
+
+# Compare total pop in MH SVI files compared to USAFacts file ----
+# 
+# compare_pop <- mh_svi_2018 %>%
+#   select(ST_ABBR, COUNTY, FIPS, E_TOTPOP) %>%
+#   left_join(pop_usafacts, by = c("FIPS" = "countyFIPS")) # neither has leading zeros
+
+
+# Identify cumulative positive COVID cases per county as of 4/17/23 ----
+
+covid_cumul_cases <- covid_usafacts %>%
+  select( countyFIPS, `County Name`, State, StateFIPS, last_col() ) # last col: `2023-04-17`
+
+covid_missing_data <- covid_cumul_cases %>%
+  filter(countyFIPS != 0) %>%
+  filter(`2023-04-17` == 0)
+
+covid_mh_svi_2018 <- mh_svi_2018 %>%
+  select(STATE, ST_ABBR, COUNTY, FIPS, E_TOTPOP, RPL_THEMES) %>%
+  mutate(RPL_THEMES = ifelse(RPL_THEMES < 0, NA, RPL_THEMES)) %>%
+  left_join(covid_cumul_cases, 
+            by = c("FIPS" = "countyFIPS")) %>%
+  left_join(pop_usafacts, 
+            by = c("FIPS" = "countyFIPS")) %>%
+  select( !ends_with(".x") ) %>%     
+  select( !ends_with(".y") ) %>%
+  select(-StateFIPS) %>%
+  mutate(case_rate = `2023-04-17`/population) %>%
+  mutate(cases_per_100k = case_rate*100000)
+
+
+covid_state_avg <- covid_mh_svi_2018 %>%
+  group_by(STATE) %>%
+  summarize(st_avg_per_100k = mean(cases_per_100k),
+            st_avg_svi = mean(RPL_THEMES, na.rm = TRUE),
+            st_min_svi = min(RPL_THEMES, na.rm = TRUE),
+            st_max_svi = max(RPL_THEMES, na.rm = TRUE)) %>%
+  mutate( st_avg_per_100k = format(st_avg_per_100k, big.mark = ",") ) %>%
+  mutate( across(!c(STATE, st_avg_per_100k),
+                  scales::label_percent(accuracy = 0.1,
+                                        suffix = "%"))
+          ) %>%
+  rename(State = STATE,
+         `State Average Cumulative COVID Cases per 100,000 Population as of April 17, 2023` = st_avg_per_100k,
+         `State Average 2018 Overall Social Vulnerability Ranking` = st_avg_svi,
+         `State Minimum 2018 Overall Social Vulnerability Ranking` = st_min_svi,
+         `State Maximum 2018 Overall Social Vulnerability Ranking` = st_max_svi)
+
+```
+
