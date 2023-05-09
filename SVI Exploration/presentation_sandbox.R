@@ -81,9 +81,10 @@ ggsave(filename = "high_svi_map_presentation.svg",
 
 # Retrieve CA outline to layer on targeted map ----
 
-ca_outline <- tigris::states(resolution = "500k", cb = TRUE, year = "2018") %>%
-  filter(NAME == "California")
-
+ca_outline <- high_sv_counties_shifted %>%
+  filter(STATEFP == "06") %>%
+  sf::st_union()
+  
 ## Export CA outline shapefile ----
 
 sf::st_write(ca_outline, "ca_outline.shp")
@@ -148,23 +149,22 @@ all_lep_map <- indivMap(var_name = "all_lep_flag", low_color = "#2948a3", high_c
 ggsave(filename = "lep_pop_map_presentation.svg")
 
 
+# Create final map with CA outline ----
 
-
-
-
-
-ggplot() +
+overlaps_map_presentation <- ggplot() +
   geom_sf(data = high_sv_counties_shifted,
-          aes(fill = ifelse(.data[[var_name]] == 0, NA, .data[[var_name]])),
+          aes(fill = ifelse(overlaps_flag == 0, NA, overlaps_flag)),
           size = 0.1) +
-  scale_fill_gradient(low = {{low_color}},                     # specify the same HEX code for gradient
-                      high = {{high_color}},
+  scale_fill_gradient(low = "#3155c2",                     
+                      high = "#3155c2",
                       na.value = "gray97") +
-  geom_sf(data = {{state_layer}},
-          size = {{stroke_width}},
+  geom_sf(data = ca_outline,
+          size = 1,
           alpha = 0) +                                         # make top layer zero opacity
   theme_void() +
   theme(legend.position = "none",
         plot.background = element_rect(fill = "transparent",   # ensure transparent bg upon saving
                                        color = NA)
   )
+
+ggsave(filename = "overlaps_flag_map_presentation.svg")
