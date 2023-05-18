@@ -6,7 +6,7 @@
 
 # Create choropleth map for all counties ----
 
-# Note the change to a vertical lengend to fit better on the slide with the...bold template.
+# Note the change to a vertical legend to fit better on the slide with the...bold template.
 
 overall_mh_svi_map <- us_counties_data_shifted %>%
   ggplot() +
@@ -36,7 +36,7 @@ overall_mh_svi_map <- us_counties_data_shifted %>%
   theme(legend.text = element_text(size = 9,                   # ensure that no-data message is gray font
                                    color = "gray27"),
         legend.position = "right",
-        legend.margin = margin(10, 10, 10, 10),                # remember clockwise ordeR: top, right, bottom, left
+        legend.margin = margin(10, 10, 10, 10),                # remember clockwise order: top, right, bottom, left
         plot.background = element_rect(fill = "transparent",   
                                        color = NA)
   )
