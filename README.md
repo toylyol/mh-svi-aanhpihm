@@ -6,4 +6,6 @@ The 2018 iteration of the Minority Health Social Vulnerability Index (SVI) was u
 
 Geographic visualizations were also produced using R thanks to the {tigris}, {sf}, and {ggplot2} packages. The custom color palettes for the maps were generated from the template colors provided by OMH using the [Colorgorical](http://vrl.cs.brown.edu/color) tool created by Gramazio, Laidlaw, and Schloss. Instructions from [Nicola Rennie's R-Ladies Cambridge talk](https://nrennie.rbind.io/talks/rladies-cambridge-ggplot2-colours/) were invaluable for easily using the custom color palettes with {ggplot2}.
 
+Amy Balliet's [Learning Infographic Design](https://www.linkedin.com/learning/learning-infographic-design-14154168) course was incredibly helpful for getting into the design mindset. Of course, elements of the original design were changed to conform to the provided template.
+
 <img src="https://github.com/toylyol/mh-svi-aanhpihm/blob/main/OMH%20AANHPI%202023%20Infographic.png" width="400" />
