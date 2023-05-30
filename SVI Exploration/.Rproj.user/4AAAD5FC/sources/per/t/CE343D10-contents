@@ -1,0 +1,48 @@
+---
+title: "Untitled"
+author: "Toyin"
+date: "2023-05-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, comment = NA, include = TRUE, cache = FALSE)
+
+```
+
+```{r load-packages, warning = FALSE, message = FALSE}
+
+# The following functions are courtesy of a Stats and R blog post: https://statsandr.com/blog/an-efficient-way-to-install-and-load-r-packages/
+
+# List required packages
+
+packages <- c("tidyverse", "mapview", "reactable", "openxlsx", "skimr", "tigris", "here")
+
+# Install packages are needed 
+
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+# Load all required packages
+
+invisible( lapply(packages, library, character.only = TRUE) )
+
+```
+
+Create a histogram with 5-7 bins using ggplot2::geom_histogram().
+
+Use ggplot2::layer_data() to 
+
+```{r}
+
+
+
+```
+
+
+<br>
+
+<p style="text-align: center; color: #717171;"> Toyin Ola </p>
