@@ -1,0 +1,1139 @@
+---
+title: "2018 Minority Health Social Vulnerability Index"
+date: "`r format(Sys.time(), ' %B %d, %Y')`"
+output: 
+  html_document:
+    css: style.css
+    theme: cerulean
+    toc: true
+    toc_float: 
+      collapsed: false
+params: 
+  year: 2018
+  sv_threshold: 0.90
+  var_threshold: 0.90
+editor_options: 
+  chunk_output_type: console
+---
+
+> The purpose of this document is to identify counties that have (a) high social vulnerability, (b) a high percent percentile of AANHPI population, and (c) a high percent percentile of speakers of Asian American, Native Hawaiian, and Pacific Islander (AANHPI) languages who have limited English proficiency (LEP). In this document, "high" is defined as the 90th percentile or higher (≥ **`r params$var_threshold`**). Familiarity with the `r params$year` Minority Health Social Vulnerability Index (MH SVI) is assumed.
+
+
+<div>
+  <div style = "background: #eff6fb; padding-top: 10px; padding-left: 10px; padding-right: 10px; padding-bottom: 10px;">
+  <span>**NOTE ON FIPS CODES:** County FIPS codes were  altered in this analysis to include leading zeros for those counties in states with single-digit FIPS codes to enable merging with a TIGRIS shapefile (to make maps). </span>
+  </div>
+</div>
+
+
+<div>
+  <div style = "background: #eff6fb; padding-top: 10px; padding-left: 10px; padding-right: 10px; padding-bottom: 10px;">
+  <span>**NOTE ON PERCENTAGES:** In the tables below, percentages have been formatted for ease of reading. This was done **_after_** the `r params$sv_threshold` cutoff was applied.</span>
+  </div>
+</div>
+
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, comment = NA, include = FALSE, cache = FALSE)
+
+```
+
+```{r load-packages, warning = FALSE, message = FALSE}
+
+# The following functions are courtesy of a Stats and R blog post: https://statsandr.com/blog/an-efficient-way-to-install-and-load-r-packages/
+
+
+# List required packages ----
+
+packages <- c("tidyverse", "mapview", "reactable", "openxlsx", "skimr", "tigris", "here")
+
+
+# Load all required packages
+
+invisible( lapply(packages, library, character.only = TRUE) )
+
+
+# Save base path to vector
+
+path <- here()
+
+```
+
+```{r load-data-and-packages}
+
+mh_svi_dd <- read_csv( here("data", "MinorityHealthSVI_DataDictionary_2018.csv") )
+
+mh_svi_2018 <- read_csv( here("data", "mh_svi_county_2018.csv") ) # nrow: 3142
+
+```
+
+```{r do-some-EDA, eval = FALSE}
+
+# Do Some Quick EDA ----
+
+mh_svi_2018 %>%
+   select(EPL_ASIAN, EPL_NHPI, EPL_CHIN, EPL_VIET, 
+          EPL_KOR, RPL_THEME3, RPL_THEMES) %>%
+   skimr::skim()
+
+```
+
+```{r subset-data}
+
+# Subset df to only essential cols ----
+
+mh_svi_lep <- mh_svi_2018 %>%
+  mutate( FIPS = ifelse(ST < 10,               # add leading zero to county FIPS as needed
+                            paste0("0", FIPS),
+                            FIPS)
+          ) %>% 
+  select(STATE, ST_ABBR, COUNTY, FIPS, EPL_ASIAN, EPL_NHPI, 
+         EPL_CHIN, EPL_VIET, EPL_KOR, RPL_THEME3, RPL_THEMES)
+
+```
+
+```{r create-functions}
+
+# Create custom functions to explore data ----
+
+## to identify high-vulnerability counties or high % percentile of any given var
+
+highSVI <- function (df, varname, threshold){
+  
+  temp <- df %>% filter({{varname}} >= {{threshold}}) 
+  
+  return(temp)
+
+}
+
+## to arrange high-vulnerability counties in desc order by given var
+
+arrangeAll <- function(df, index, threshold, varname){
+
+ temp <- df %>% 
+   filter({{index}} >= {{threshold}}) %>%
+   arrange(desc({{varname}}))
+ 
+ return(temp)
+  
+}
+
+## to select top n of counties with specified value of any given var 
+
+selectTop <- function(df, varname, num){
+  
+   temp <- df %>%
+     slice_max(order_by = {{varname}}, 
+               n = {{num}})
+   
+   return(temp)
+  
+}
+
+## to identify intersections among the variables of interest
+
+intersectVaribles <- function(df1, df2){
+  
+  temp <- df1 %>%
+    inner_join(df2,
+               by = "FIPS",                  # specify primary key col
+               keep = FALSE) %>%             # don't retain key col from 2nd df
+    select( !ends_with(".y") ) %>%           # remove duplicate cols from 2nd df
+    rename_with( ~str_replace(., ".x", "") ) # remove suffix from 2st df colnames
+  
+  return(temp)
+
+}
+
+
+# Create custom function for making and prettifying reactables ----
+
+## to format a high-level, summary reactable
+
+prettyReactable <- function(df){
+  
+  df %>%
+    mutate( across(!c(STATE, ST_ABBR, COUNTY, FIPS),      # do not alter these cols
+                   scales::label_percent(accuracy = 0.1,  # retain one decimal place
+                                         suffix = "%")) 
+            ) %>%
+    rename(State = STATE, 
+           Abbreviation = ST_ABBR, 
+           `County Name` = COUNTY, 
+           `County FIPS Code` = FIPS, 
+           `Percentile of Asian Estimate` = EPL_ASIAN, 
+           `Percentile of NHPI Estimate` = EPL_NHPI, 
+           `Percentile of Chinese LEP Estimate` = EPL_CHIN, 
+           `Percentile of Vietnamese LEP Estimate` = EPL_VIET, 
+           `Percentile of Korean LEP Estimate` = EPL_KOR, 
+           `Minority Status & Language Percentile Ranking` = RPL_THEME3, 
+           `Overall Social Vulnerability Percentile Ranking` = RPL_THEMES) %>%
+    reactable(defaultColDef = colDef(align = "left"),   # set default to left align col text
+              showPageSizeOptions = TRUE,               # allow user to change rows per page
+              pageSizeOptions = c(15, 25, 35),          # delineate options for rows per page
+              defaultPageSize = 15,                     # set default rows per page
+              sortable = TRUE,
+              resizable = TRUE)
+
+}
+
+## to format in-depth reactable for individual focus areas
+
+
+deepReactable <- function(df, var_name, new_header){
+  
+  df %>%
+  mutate( across(!c(STATE, ST_ABBR, COUNTY, FIPS), 
+                   scales::label_percent(accuracy = 0.1,
+                                         suffix = "%")) 
+            ) %>%
+  select(STATE, ST_ABBR, COUNTY, FIPS, {{var_name}}, RPL_THEME3, RPL_THEMES) %>%  
+  relocate({{var_name}}, .after = RPL_THEMES) %>%                    # ensure col of interest at beginning
+  arrange( desc({{var_name}}) ) %>%
+  rename(State = STATE,
+         Abbreviation = ST_ABBR, 
+        `County Name` = COUNTY, 
+        `County FIPS Code` = FIPS,
+        {{new_header}} := {{var_name}},                               # note walrus operator
+        `Minority Status & Language Percentile Ranking` = RPL_THEME3,
+        `Overall Social Vulnerability Percentile Ranking` = RPL_THEMES) %>%
+  reactable(defaultColDef = colDef(align = "left"), 
+            showPageSizeOptions = TRUE,
+            pageSizeOptions = c(15, 25, 35),
+            defaultPageSize = 15,
+            sortable = TRUE,
+            resizable = TRUE
+            )
+} 
+```
+
+
+# Overview
+
+Of the many variables available in the MH SVI 2018, the variables and indices in the following table will be used in this exploration.
+
+| Characteristic                                       | MH SVI Ranking 1 | MH SVI Ranking 2 | MH SVI Ranking 3 |
+| :--------------------------------------------------- | :--------------- | :--------------- | :--------------- |
+| High Overall Social Vulnerability                    | RPL_THEMES       | N/A              | N/A              |
+| High Minority Status & Language                      | RPL_THEME3       | N/A              | N/A              |
+| High Percentage of AANHPI Population                 | EPL_ASIAN        | EPL_NHPI         | N/A              |
+| High Percentage of Asian-Language Speakers with LEP  | EPL_CHIN         | EPL_VIET         | EPL_KOR          |
+
+For easier reading, the variables and indices are labeled as follows in the tables throughout this document. These definitions are adapted from the data dictionary, which is available [online](https://www.minorityhealth.hhs.gov/minority-health-svi/).
+
+- EPL_ASIAN = Percentile of Asian Estimate
+
+- EPL_NHPI = Percentile of NHPI Estimate
+
+- EPL_CHIN = Percentile of Chinese LEP Estimate
+
+- EPL_VIET = Percentile of Vietnamese LEP Estimate
+
+- EPL_KOR = Percentile of Korean LEP Estimate
+
+- RPL_THEME3 = Minority Status & Language Percentile Ranking
+
+- RPL_THEMES = Overall Social Vulnerability Percentile Ranking 
+
+
+## Table Tips
+
+- The columns within all tables can be resized. 
+  - Use cursor to hover over the far-right edge of the column: The cursor will change to two parallel lines with arrows pointing each direction. Click and drag the column to the desired width. 
+
+- The tables can also be sorted using the column headers. 
+  - Click on the column header to put the counties in ascending order based on that column. 
+  - Click the column header again to change to descending order. 
+  - A small arrow will appear in the upper right-hand corner of the column header being used to sort the data. 
+  
+- The number of rows displayed on each page can also be changed. 
+  - See the dropdown menu in the bottom-left of each table. The word "Show" precedes it. 
+
+
+## Table 1 | All US Counties
+
+This table contains the MH SVI variables of interest for all `r nrow(mh_svi_lep)` counties within the United States.
+
+`r prettyReactable(mh_svi_lep)`
+
+
+```{r create-high-sv-table}
+
+# Create a table with all high-vulnerability US counties
+
+h_sv_df <- highSVI(mh_svi_lep, RPL_THEMES, params$sv_threshold) 
+
+h_sv_count <- nrow(h_sv_df) # save number of high-vulnerability counties to vector
+
+```
+
+## Table 2 | All High-Vulnerability US Counties
+
+This table contains the `r h_sv_count` counties that have an Overall Social Vulnerability ranking (RPL_THEMES) greater than or equal to **`r params$sv_threshold`**.
+
+`r prettyReactable(h_sv_df)`
+
+```{r search-for-overlaps}
+
+# Explore overlaps with high vulnerability counties ----
+
+## see high-vulnerability counties with high LEP Chinese speakers
+
+h_lep_chin_df <- highSVI(h_sv_df, EPL_CHIN, params$var_threshold)
+
+## see high-vulnerability counties with high LEP Vietnamese speakers
+
+h_lep_viet_df <- highSVI(h_sv_df, EPL_VIET, params$var_threshold)
+
+## see high-vulnerability counties with high Asian pop
+
+h_asian_df <- highSVI(h_sv_df, EPL_ASIAN, params$var_threshold)
+
+## see high-vulnerability counties with high NHPI pop
+
+h_nhpi_df <- highSVI(h_sv_df, EPL_NHPI, params$var_threshold)
+
+## see high-vulnerability counties with high Theme 3
+
+h_theme3_df <- highSVI(h_sv_df, RPL_THEME3, params$var_threshold)
+
+## see high-vulnerability counties with high LEP Korean speakers
+
+h_lep_kor_df <- highSVI(h_sv_df, EPL_KOR, params$var_threshold)
+```
+
+# In-Depth Exploration of High-Vulnerability US Counties
+
+The following tables only examine the **`r h_sv_count`** counties that have an Overall Social Vulnerability greater than or equal to `r params$sv_threshold` (i.e., RPL_THEMES ≥ `r params$sv_threshold`). As with Table 1 and 2, percentages have been formatted for ease of reading. Recall that percentages were formatted _after_ applying the `r params$sv_threshold` threshold.
+
+
+## Table 3 | High-Vulnerability Counties w/ High Percent Percentile of LEP Chinese Speakers
+
+Of the `r h_sv_count` counties that have an Overall Social Vulnerability ranking (RPL_THEMES) greater than or equal to `r params$sv_threshold`, there are **`r nrow(h_lep_chin_df)`** counties (`r paste0( round(nrow(h_lep_chin_df)/h_sv_count, 2)*100, "%" ) `) that also have a percent percentile of LEP Chinese speakers greater than or equal to `r params$var_threshold` (i.e., EPL_CHIN ≥ `r params$var_threshold`).
+
+`r deepReactable(h_lep_chin_df, EPL_CHIN, "Percentile of Chinese LEP Estimate") `
+
+
+## Table 4 | High-Vulnerability Counties w/ High Percent Percentile of LEP Korean Speakers
+
+Of the `r h_sv_count` counties that have an Overall Social Vulnerability ranking (RPL_THEMES) greater than or equal to `r params$sv_threshold`, there are **`r nrow(h_lep_kor_df)`** counties (`r paste0( round(nrow(h_lep_kor_df)/h_sv_count, 2)*100, "%" ) `) that also have a percent percentile of LEP Korean speakers greater than or equal to `r params$var_threshold` (i.e., EPL_KOR ≥ `r params$var_threshold`).
+
+`r deepReactable(h_lep_kor_df, EPL_KOR, "Percentile of Korean LEP Estimate") `
+
+
+## Table 5 | High-Vulnerability Counties w/ High Percent Percentile of LEP Vietnamese Speakers
+
+Of the `r h_sv_count` counties that have an Overall Social Vulnerability ranking (RPL_THEMES) greater than or equal to `r params$sv_threshold`, there are **`r nrow(h_lep_viet_df)`** counties (`r paste0( round(nrow(h_lep_viet_df)/h_sv_count, 2)*100, "%" ) `) that also have a percent percentile of LEP Vietnamese speakers greater than or equal to `r params$var_threshold` (i.e., EPL_VIET ≥ `r params$var_threshold`).
+
+`r deepReactable(h_lep_viet_df, EPL_VIET, "Percentile of Vietnamese LEP Estimate") `
+
+## Table 6 | High-Vulnerability Counties w/ High Percent Percentile of Asian Population
+
+Of the `r h_sv_count` counties that have an Overall Social Vulnerability ranking (RPL_THEMES) greater than or equal to `r params$sv_threshold`, there are **`r nrow(h_asian_df)`** counties (`r paste0( round(nrow(h_asian_df)/h_sv_count, 2)*100, "%" ) `) that also have a percent percentile of Asian population greater than or equal to `r params$var_threshold` (i.e., EPL_ASIAN ≥ `r params$var_threshold`).
+
+`r deepReactable(h_asian_df, EPL_ASIAN, "Percentile of Asian Estimate") `
+
+
+## Table 7 | High-Vulnerability Counties w/ High Percent Percentile of NHPI Population
+
+Of the `r h_sv_count` counties that have an Overall Social Vulnerability ranking (RPL_THEMES) greater than or equal to `r params$sv_threshold`, there are **`r nrow(h_nhpi_df)`** counties (`r paste0( round(nrow(h_nhpi_df)/h_sv_count, 2)*100, "%" ) `) that also have a percent percentile of NHPI population greater than or equal to `r params$var_threshold` (i.e., EPL_NHPI ≥ `r params$var_threshold`).
+
+`r deepReactable(h_nhpi_df, EPL_NHPI, "Percentile of NHPI Estimate") `
+
+
+## Table 8 | High-Vulnerability Counties w/ High Minority Status & Language Percentile Ranking
+
+Of the `r h_sv_count` counties that have an Overall Social Vulnerability ranking (RPL_THEMES) greater than or equal to `r params$sv_threshold`, there are **`r nrow(h_theme3_df)`** counties (`r paste0( round(nrow(h_theme3_df)/h_sv_count, 2)*100, "%" ) `) that also have a Minority Status & Language percentile ranking greater than or equal to `r params$var_threshold` (i.e., RPL_THEME3 ≥ `r params$var_threshold`).
+
+`r deepReactable(h_theme3_df, RPL_THEME3, "Percentile of Minority Status & Language Percentile Ranking") `
+
+```{r explore-state-clusters}
+
+# Create custom function to count counties per state w/ high vulnerability ----
+
+exploreClusters <- function(varname){
+  
+   h_sv_df %>% 
+     filter( .data[[varname]] >= params$var_threshold ) %>%
+     group_by(STATE) %>%
+     summarize( `County Count` = n(),
+                `State Average` = mean( .data[[varname]] )
+              ) %>%
+    mutate( Variable = {{varname}} )  # add col with varname to prep for binding rows
+  
+}
+
+
+# Iterate over variable list to identify clusters by state ----
+
+var_list <- list("EPL_ASIAN", "EPL_NHPI", "EPL_CHIN", "EPL_VIET", "EPL_KOR", "RPL_THEME3", "RPL_THEMES")
+
+cluster_counts_df <- var_list %>%
+  purrr::map(exploreClusters) %>%
+  bind_rows()  %>%                     # combine into one df
+  mutate( across(`State Average`, 
+                  scales::label_percent(accuracy = 0.1,
+                                         suffix = "%")) 
+            )
+          
+
+# Format cluster counts as filterable reactable ----
+
+cluster_counts_table <- cluster_counts_df %>% 
+  reactable(defaultColDef = colDef(align = "left"),
+            columns = list( Variable = colDef(filterable = TRUE) ),   # filter this col only to view variable of interest only
+            showPageSizeOptions = TRUE,
+            pageSizeOptions = c(15, 30, 45),  
+            defaultPageSize = 15, 
+            sortable = TRUE,
+            resizable = TRUE) 
+
+```
+
+## Table 9 | High-Vulnerability County Clusters by State and Variable of Interest
+
+This table examines the number (count) of high-vulnerability counties per state that also have a high percent percentile ranking (≥ `r params$var_threshold`) for each of the variables of interest. These counts are at the state level to detect (crude) clusters. **TABLE TIP:** This table has a filterable column: Type a keyword in the text box under the "Variable" column header to display data for only one variable of interest. The filter is not case-sensitive.
+
+`r cluster_counts_table`
+
+```{r explore-intersections}
+
+# Explore intersections ----
+
+## see high-vulnerability counties with high Asian and NHPI pops
+
+h_asian_nhpi_df <- intersectVaribles(h_asian_df, h_nhpi_df) 
+
+## see high-vulnerability counties with high LEP Chinese, Korean, and Vietnamese speakers
+
+df_list <- list(h_lep_chin_df, h_lep_viet_df, h_lep_kor_df)
+
+h_lep_chin_viet_kor_df <- df_list %>%
+  purrr::reduce(inner_join, by = "FIPS")  %>%   # find common counties among all three dfs
+  select( !ends_with(".x") ) %>%     
+  select( !ends_with(".y") ) %>%
+  relocate(FIPS, .after = COUNTY)
+  
+## see high-vulnerability counties with overlap of all variables
+
+all_overlaps <- intersectVaribles(h_asian_nhpi_df, h_lep_chin_viet_kor_df)
+
+```
+
+# Overlaps
+
+The tables in this section examine the overlaps among the table in the second section.
+
+## Table 10 | High-Vulnerability Counties w/ High Percent Percentile LEP Chinese, Korean, and Vietnamese Speakers
+
+This table examines the intersection of Tables 3-5. There are a total of **`r nrow(h_lep_chin_viet_kor_df)`** US counties that have an Overall Social Vulnerability greater than or equal to `r params$sv_threshold` as well as percent percentiles of LEP Chinese, Korean, and Vietnamese greater than or equal to `r params$var_threshold` (i.e., RPL_THEMES ≥ `r params$sv_threshold` and EPL_CHIN ≥ `r params$var_threshold` and EPL_KOR ≥ `r params$var_threshold` and EPL_VIET ≥ `r params$var_threshold`).
+
+`r prettyReactable(h_lep_chin_viet_kor_df)`
+
+
+## Table 11 | High-Vulnerability Counties w/ High Percent Percentile Asian and NHPI Populations
+
+This table examines the intersection of Tables 6 and 7. There are a total of **`r nrow(h_asian_nhpi_df)`** US counties that have an Overall Social Vulnerability greater than or equal to `r params$sv_threshold` as well as percent percentiles of the Asian and NHPI populations greater than or equal to `r params$var_threshold` (i.e., RPL_THEMES ≥ `r params$sv_threshold` and EPL_ASIAN ≥ `r params$var_threshold` and EPL_NHPI ≥ `r params$var_threshold`).
+
+`r prettyReactable(h_asian_nhpi_df)`
+
+
+## Table 12 | High-Vulnerability Counties w/ High Percent Percentile AANHPI Populations and LEP Chinese, Korean, and Vietnamese Speakers
+
+This table examines the intersection of Tables 3-7. There are a total of **`r nrow(all_overlaps)`** US counties that have an Overall Social Vulnerability greater than or equal to `r params$sv_threshold` as well as percent percentiles of the Asian population, NHPI population, LEP Chinese speakers, LEP Korean speakers, and LEP Vietnamese speakers greater than or equal to `r params$var_threshold` (i.e., RPL_THEMES ≥ `r params$sv_threshold` and EPL_ASIAN ≥ `r params$var_threshold` and EPL_NHPI ≥ `r params$var_threshold` and EPL_CHIN ≥ `r params$var_threshold` and EPL_KOR ≥ `r params$var_threshold` and EPL_VIET ≥ `r params$var_threshold`).
+
+`r prettyReactable(all_overlaps)`
+
+
+```{r get-shapefile-and-export, eval = FALSE}
+
+# Retrieve shapefile (sf object) of US counties ----
+
+us_counties <- tigris::counties(resolution = "500k",  # use default (less sharp) resolution
+                                year = "2018",
+                                cb = TRUE)            # use clipped boundaries
+
+
+# Export shapefile ----
+
+sf::st_write(us_counties, "us_counties.shp") # do not worry about the warnings; they stem from known issues w/ GDAL (https://github.com/r-spatial/sf/issues/306)
+
+```
+
+```{r load-shapefile-join-data-and-explore, eval = FALSE}
+
+# Read in shapefile obtained via {tigris} in previous chunk ----
+
+us_counties <- sf::read_sf("shapefile/us_counties.shp")
+
+
+# Join shapefile and MH SVI data ----
+
+us_counties_data <- left_join(us_counties, 
+                              mh_svi_lep, 
+                              by = c("GEOID" = "FIPS"))
+
+## Recode missing as NA (instead of -999) ----
+
+us_counties_data <- us_counties_data %>%
+  mutate( RPL_THEMES = ifelse(RPL_THEMES < 0,
+                              NA,
+                              RPL_THEMES) )
+
+
+## See which counties have no MH SVI data after joining ----
+
+# us_counties_data %>%
+#   filter(is.na(RPL_THEMES)) %>%
+#   group_by(STATEFP) %>%
+#   count()
+
+### there are 91 counties w/out MH SVI data; they are US territory islands (e.g, Guam, US Virgin Island, PR, etc.)
+
+
+## Remove island US territories ----
+
+territory_fips <- c("60", "66", "69", "72", "78")
+
+`%not_in%` <- Negate( `%in%` )    # found workaround here: https://stackoverflow.com/questions/38351820/negation-of-in-in-r
+
+us_counties_data <- us_counties_data %>%
+  filter(STATEFP %not_in% territory_fips)
+
+
+## Make a quick interactive map ----
+
+# mapview(us_counties_data)  # see technical issues with {farver} and zcol
+
+
+## Shift geometry to account for AK islands crossing international dateline ----
+
+us_counties_data_shifted <- us_counties_data %>%
+  tigris::shift_geometry(preserve_area = FALSE,   # shrink AK, enlarge HI
+                         position = "below")      # put AK and HI under contiguous US
+
+
+# Merge shapefile and high-vulnerability county data ----
+
+high_sv_counties <- left_join(us_counties, 
+                              h_sv_df, 
+                              by = c("GEOID" = "FIPS"))
+
+
+## Remove island territories ----
+
+high_sv_counties <- high_sv_counties %>%
+  filter(STATEFP %not_in% territory_fips)  # define above in line 403
+
+
+## Shift geometry for AK and HI ----
+
+high_sv_counties_shifted <- high_sv_counties %>%
+  tigris::shift_geometry(preserve_area = FALSE,   # shrink AK, enlarge HI
+                         position = "below")
+
+```
+
+```{r create-all-mh-svi-choropleth-map, eval = FALSE}
+
+# Make a choropleth map 
+
+overall_mh_svi_map <- us_counties_data_shifted %>%
+  ggplot() +
+  geom_sf(aes(fill = RPL_THEMES,
+              shape = "No data\nare available.")) +
+  scale_fill_distiller(name = "Overall Minority Health\nSocial Vulnerability",
+                       direction = 1,                                         # note -1 is the default for this scale
+                       palette = "YlGnBu", 
+                       labels = scales::percent_format(),
+                       na.value = "gray87") +
+  scale_shape(guide = "legend") +                                   # use to ensure override.aes() accepted
+  guides(shape = guide_legend(title = NULL,                         # reinforce that there should be no legend title
+                              override.aes = list(fill = "gray87",  # add NA value to legend
+                                                  title = NULL,
+                                                  label = FALSE,
+                                                  order = 2,
+                                                  color = "transparent")), # change stroke color in legend
+    fill = guide_colorbar(title.position = "top",                          # code courtesy of Cédric Scherer
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1) 
+         ) +
+  theme_void() +
+  theme(legend.text = element_text(size = 10,                  # ensure that no-data message is gray font
+                                   color = "gray27"),
+        legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",   # ensure transparent bg upon saving 
+                                      color = NA)
+        )
+
+
+# Save map
+
+ggsave(filename = "overall_mh_svi_map.svg",
+       height = 5.66, width = 9.05,
+       units = "in" )                       # note default is 300dpi
+
+```
+
+```{r generate-high-sv-map, eval = FALSE}
+
+# Generate a choropleth map with only high-vulnerability counties ----
+
+high_sv_map <- high_sv_counties_shifted %>%
+  ggplot() +
+  geom_sf( aes(fill = RPL_THEMES) ) +
+  scale_fill_distiller(name = "High Social Vulnerability\n(90th percentile or higher)",
+                       direction = 1,                                        
+                       palette = "YlGnBu", 
+                       labels = scales::percent_format(),
+                       na.value = "gray97") +                   # use gray97 for to be consistent with subsequent tables
+  guides(fill = guide_colorbar(title.position = "top",                          
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1)) +
+  theme_void() +
+  theme(legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",     
+                                      color = NA)
+        )
+
+ggsave(filename = "high_sv_map.svg",
+       height = 5.66, width = 9.05,
+       units = "in")                 # saves to default 9.05x5.66 in
+
+```
+
+```{r generate-indiv-var-maps, eval = FALSE}
+
+# Create a function to create choropleth maps for individual variables ---
+
+targetedMap <- function(var_name, low_color, high_color, stroke_width = 0.5, ...){
+  
+  ggplot() +
+    geom_sf(data = high_sv_counties_shifted,
+            aes(fill = ifelse(.data[[var_name]] < params$var_threshold,  # treat values under 0.89 for EPL_ASIAN as NA
+                             NA, .data[[var_name]])),
+            size = 0.1) +
+    scale_fill_gradient(low = {{low_color}},           # specify the same HEX code for low and high value in gradient
+                        high = {{high_color}},
+                        na.value = "gray97") +
+    geom_sf(data = filter(high_sv_counties_shifted, .data[[var_name]] > params$var_threshold),
+            size = {{stroke_width}},
+            alpha = 0) +                                         # make top layer zero opacity
+    labs(title = var_name) +
+    theme_void() +
+    theme(legend.position = "none",
+          plot.background = element_rect(fill = "transparent",   # ensure transparent bg upon saving
+                                      color = NA)
+          )
+
+}
+
+targetedMap("EPL_ASIAN", "#ffffd9", "#ffffd9") 
+
+ggsave(filename = "asian_map.svg",
+       height = 5.66, width = 9.05,
+       units = "in")
+
+```
+
+```{r use-omh-custom-palette, eval = FALSE}
+
+# These function are courtesy of Nicola Rennie's March 2023 R-Ladies Cambridge talk on creating custom color scales: https://nrennie.rbind.io/talks/rladies-cambridge-ggplot2-colours/
+
+# Define colors to be included in palette ----
+
+my_colors = list( omh_colors = c("#7bc043", "#f68e1d", "#a5429c", "#0057a1") )
+
+
+# Create palette with custom colors ----
+
+my_palettes = function(palette_name,
+                       n,
+                       type = c("discrete", "continuous")) {
+  palette = my_colors[[palette_name]]
+  if (missing(n)) {
+    n = length(palette)
+  }
+  type = match.arg(type)
+  out = switch(type,
+               continuous = grDevices::colorRampPalette(palette)(n),
+               discrete = palette[1:n]
+  )
+  structure(out, palette_name = palette_name, class = "palette")
+}
+
+
+# Test new my_palettes function
+# my_palettes("omh_colors", n = 6, type = "continuous")
+
+
+# Make scale function ----
+
+scale_fill_mycols_c = function(palette_name, ...) {
+  ggplot2::scale_fill_gradientn(
+    colors = my_palettes(palette_name, type = "continuous"), ...)
+}
+
+
+# Make all-MH SVI choropleth map ----
+
+us_counties_data_shifted %>%
+  ggplot() +
+  geom_sf(aes(fill = RPL_THEMES,
+              shape = "No data\nare available."),
+          size = 0.1) +
+  scale_fill_mycols_c(name = "Overall Minority Health\nSocial Vulnerability",
+                       palette = "omh_colors", 
+                       labels = scales::percent_format(),
+                       na.value = "gray87") +
+  scale_shape(guide = "legend") +                                   # use to ensure override.aes() accepted
+  guides(shape = guide_legend(title = NULL,                         # reinforce that there should be no legend title
+                              override.aes = list(fill = "gray87",  # add NA value to legend
+                                                  title = NULL,
+                                                  label = FALSE,
+                                                  order = 2,
+                                                  color = "transparent")), # change stroke color in legend
+         fill = guide_colorbar(title.position = "top",                          # code courtesy of Cédric Scherer
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1) 
+  ) +
+  theme_void() +
+  theme(legend.text = element_text(size = 10,                  # ensure that no-data message is gray font
+                                   color = "gray27"),
+        legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",   # ensure transparent bg upon saving 
+                                       color = NA)
+  )
+
+ggsave(filename = "overall_mh_svi_map_omh_colors.svg",
+       height = 5.66, width = 9.05,
+       units = "in" )           
+
+
+# Make high-SVI choropleth map ----
+
+high_sv_counties_shifted %>%
+  ggplot() +
+  geom_sf( aes(fill = RPL_THEMES),
+           size = 0.1) +
+  scale_fill_mycols_c(name = "High Social Vulnerability\n(90th percentile or higher)",
+                       palette = "omh_colors", 
+                       labels = scales::percent_format(),
+                       na.value = "gray97") +                   # use gray97 for to be consistent with subsequent tables
+  guides(fill = guide_colorbar(title.position = "top",                          
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1)) +
+  theme_void() +
+  theme(legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",     
+                                       color = NA)
+  )
+
+ggsave(filename = "high_sv_map_omh_colors.svg",
+       height = 5.66, width = 9.05,
+       units = "in")                 # saves to default 9.05x5.66 in
+
+
+# Create targeted choropleth maps for individual variables ---
+
+targetedMap("EPL_ASIAN", "#a5429c", "#a5429c", stroke_width = 0.1) 
+
+ggsave(filename = "asian_map_omh_colors.svg",
+       height = 5.66, width = 9.05,
+       units = "in")
+
+
+targetedMap("EPL_NHPI", "#0057a1", "#0057a1", stroke_width = 0.1) 
+
+ggsave(filename = "nhpi_map_omh_colors.svg",
+       height = 5.66, width = 9.05,
+       units = "in")
+
+```
+
+```{r use-color-palette-from-actual-tool, eval = FALSE}
+
+# Make all-MH SVI choropleth map ----
+
+all_mh_svi_map <- us_counties_data_shifted %>%
+  ggplot() +
+  geom_sf(aes(fill = RPL_THEMES,
+              shape = "No data\nare available."),
+          size = 0.1) +
+  scale_fill_distiller(name = "Overall Minority Health\nSocial Vulnerability",
+                      palette = "BuPu", 
+                      direction = 1,
+                      labels = scales::percent_format(),
+                      na.value = "gray87") +
+  scale_shape(guide = "legend") +                                   # use to ensure override.aes() accepted
+  guides(shape = guide_legend(title = NULL,                         # reinforce that there should be no legend title
+                              override.aes = list(fill = "gray87",  # add NA value to legend
+                                                  title = NULL,
+                                                  label = FALSE,
+                                                  order = 2,
+                                                  color = "transparent")), # change stroke color in legend
+         fill = guide_colorbar(title.position = "top",                          # code courtesy of Cédric Scherer
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1) 
+  ) +
+  theme_void() +
+  theme(legend.text = element_text(size = 10,                  # ensure that no-data message is gray font
+                                   color = "gray27"),
+        legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",   # ensure transparent bg upon saving 
+                                       color = NA)
+  )
+
+ggsave(filename = "overall_mh_svi_map_BuPu.svg",
+       height = 5.66, width = 9.05,
+       units = "in" )           
+
+
+# Make high-SVI choropleth map ----
+
+high_svi_map <- high_sv_counties_shifted %>%
+  ggplot() +
+  geom_sf( aes(fill = RPL_THEMES),
+           size = 0.1) +
+  scale_fill_distiller(name = "High Social Vulnerability\n(90th percentile or higher)",
+                      palette = "BuPu", 
+                      direction = 1,
+                      labels = scales::percent_format(),
+                      na.value = "gray97") +                   # use gray97 for to be consistent with subsequent tables
+  guides(fill = guide_colorbar(title.position = "top",                          
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1)) +
+  theme_void() +
+  theme(legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",     
+                                       color = NA)
+  )
+
+ggsave(filename = "high_sv_map_BuPu.svg",
+       height = 5.66, width = 9.05,
+       units = "in")                 # saves to default 9.05x5.66 in
+
+
+# Create targeted choropleth maps for individual variables ---
+
+high_svi_asian_map <- targetedMap("EPL_ASIAN", "#8856a7", "#8856a7", stroke_width = 0.1) 
+
+ggsave(filename = "asian_map_BuPu.svg",
+       height = 5.66, width = 9.05,
+       units = "in")
+
+
+high_svi_nhpi_map <- targetedMap("EPL_NHPI", "#810f7c", "#810f7c", stroke_width = 0.1) 
+
+ggsave(filename = "nhpi_map_BuPu.svg",
+       height = 5.66, width = 9.05,
+       units = "in")
+
+
+# Generate additional targeted maps highlighting states for presentation ----
+
+targetedStateMap <- function(var_name, state_name, low_color, high_color, stroke_width = 0.5, ...){
+  
+  ggplot() +
+    geom_sf(data = high_sv_counties_shifted,
+            aes(fill = ifelse(.data[[var_name]] < params$var_threshold,  # treat values under 0.89 for var-n as NA
+                             NA, .data[[var_name]])),
+            size = 0.1) +
+    scale_fill_gradient(low = {{low_color}},                     # specify the same HEX code for gradient
+                        high = {{high_color}},
+                        na.value = "gray97") +
+    geom_sf(data = {{state_name}},
+            size = {{stroke_width}},
+            alpha = 0) +                                         # make top layer zero opacity
+    labs(title = var_name) +
+    theme_void() +
+    theme(legend.position = "none",
+          plot.background = element_rect(fill = "transparent",   # ensure transparent bg upon saving
+                                      color = NA)
+          )
+
+}
+
+```
+
+```{r provided-template-colors, eval = FALSE}
+
+# One color palette option using both template colors as a starting point is ["#98bddd", "#2480a1", "#2f4fb4", "#1c2c64"]. See aanhpi_option2.
+
+# A second color palette option using only the darkest template color (#192c64) as a starting point is ["#46ebdc", "#6ec1f8", "#15729c", "#1c2c64"]. See aanhpi_option3. 
+
+# Custom color palettes were created using Colorgorical tool: http://vrl.cs.brown.edu/color.
+
+# These function are courtesy of Nicola Rennie's March 2023 R-Ladies Cambridge talk on creating custom color scales: https://nrennie.rbind.io/talks/rladies-cambridge-ggplot2-colours/
+
+# Define colors to be included in palette ----
+
+my_colors = list( omh_colors = c("#7bc043", "#f68e1d", "#a5429c", "#0057a1"),
+                  aanhpi_option1 = c("#2d4fb4","#192c64"),
+                  aanhpi_option2 = c("#98bddd", "#2480a1", "#2f4fb4", "#1c2c64"),
+                  aanhpi_option3 = c("#46ebdc", "#6ec1f8", "#15729c", "#1c2c64")
+                )
+
+
+# Create palette with custom colors ----
+
+my_palettes = function(palette_name,
+                       n,
+                       type = c("discrete", "continuous")) {
+  palette = my_colors[[palette_name]]
+  if (missing(n)) {
+    n = length(palette)
+  }
+  type = match.arg(type)
+  out = switch(type,
+               continuous = grDevices::colorRampPalette(palette)(n),
+               discrete = palette[1:n]
+  )
+  structure(out, palette_name = palette_name, class = "palette")
+}
+
+
+# Make scale function ----
+
+scale_fill_mycols_c = function(palette_name, ...) {
+  ggplot2::scale_fill_gradientn(
+    colors = my_palettes(palette_name, type = "continuous"), ...)
+}
+
+
+
+# Make all-MH SVI choropleth map ----
+
+us_counties_data_shifted %>%
+  ggplot() +
+  geom_sf(aes(fill = RPL_THEMES,
+              shape = "No data\nare available."),
+          size = 0.1) +
+  scale_fill_mycols_c(name = "Overall Minority Health\nSocial Vulnerability",
+                      palette = "aanhpi_option3", 
+                      labels = scales::percent_format(),
+                      na.value = "gray87") +
+  scale_shape(guide = "legend") +                                   # use to ensure override.aes() accepted
+  guides(shape = guide_legend(title = NULL,                         # reinforce that there should be no legend title
+                              override.aes = list(fill = "gray87",  # add NA value to legend
+                                                  title = NULL,
+                                                  label = FALSE,
+                                                  order = 2,
+                                                  color = "transparent")), # change stroke color in legend
+         fill = guide_colorbar(title.position = "top",                          # code courtesy of Cédric Scherer
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1) 
+  ) +
+  theme_void() +
+  theme(legend.text = element_text(size = 10,                  # ensure that no-data message is gray font
+                                   color = "gray27"),
+        legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",   # ensure transparent bg upon saving 
+                                       color = NA)
+  )
+
+ggsave(filename = "overall_mh_svi_map_template3.svg",
+       height = 5.66, width = 9.05,
+       units = "in" )           
+
+
+# Make high-SVI choropleth map ----
+
+high_sv_counties_shifted %>%
+  ggplot() +
+  geom_sf( aes(fill = RPL_THEMES),
+           size = 0.1) +
+  scale_fill_mycols_c(name = "High Social Vulnerability\n(90th percentile or higher)",
+                      palette = "aanhpi_option3", 
+                      labels = scales::percent_format(),
+                      na.value = "gray97") +                   # use gray97 for to be consistent with subsequent tables
+  guides(fill = guide_colorbar(title.position = "top",                          
+                               title.hjust = 0.5,
+                               title.theme = element_text(size = 12,
+                                                          color = "gray27"),
+                               barwidth = unit(20, "lines"),
+                               barheight = unit(0.5, "lines"),
+                               order = 1)) +
+  theme_void() +
+  theme(legend.position = "top",
+        legend.margin = margin(10, 6, 6, 4),
+        plot.background = element_rect(fill = "transparent",     
+                                       color = NA)
+  )
+
+ggsave(filename = "high_sv_map_template3.svg",
+       height = 5.66, width = 9.05,
+       units = "in")                 # saves to default 9.05x5.66 in
+
+
+# Create targeted choropleth maps for individual variables ---
+
+targetedMap("EPL_ASIAN", "#192c64", "#192c64", stroke_width = 0.1) 
+
+ggsave(filename = "asian_map_template.svg",
+       height = 5.66, width = 9.05,
+       units = "in")
+
+
+targetedMap("EPL_NHPI", "#2d4fb4", "#2d4fb4", stroke_width = 0.1) 
+
+ggsave(filename = "nhpi_map_template.svg",
+       height = 5.66, width = 9.05,
+       units = "in")
+
+
+```
+
+```{r notes-for-analyst, eval = FALSE}
+
+# Technical Issues ----
+
+## Unable to use {mapview} zcol argument  or scale_fill_viridis due to issue with {farver}. Neither installing binary (r-oldre) and dependencies using dependicies = T did worked (https://stackoverflow.com/questions/59789990/there-is-no-package-called-farver). 
+
+## Note some more "HTTP status was '403 Forbidden'" errors when trying to install {showtext} or {extrafont} (separately) to use Google font
+
+## Not XML error when using svglite instead of ggsave:https://www.tidyverse.org/blog/2021/02/svglite-2-0-0/; https://tmieno2.github.io/R-as-GIS-for-Economists/ggsave.html
+
+## The svglite::web_fonts function did not work: https://www.r-bloggers.com/2019/04/using-svglite-with-web-fonts-by-ellis2013nz/; https://github.com/ellisp/frs-r-package/blob/master/pkg/R/svg_googlefonts.R
+
+
+# References ----
+
+## Quasiquotation
+
+### See reminders of necessary syntax when using custom-function paramter to name new col (Google search: r quasiquotation embrace parameter as new colname): https://stackoverflow.com/questions/52718604/passing-a-list-of-arguments-to-a-function-with-quasiquotation; https://stackoverflow.com/questions/57499122/can-i-use-a-function-when-naming-new-columns-with-quasiquotation
+
+
+## PowerPoint
+
+### See how to draw curved lines: https://answers.microsoft.com/en-us/msoffice/forum/all/drawing-complex-curves-in-powerpoint-any-tips/034b2f73-58e3-4750-be01-81216f0c3a89
+
+
+## {reactable}
+
+### See grouping options: https://glin.github.io/reactable/articles/examples.html#grouping-and-aggregation 
+### See pagination options: https://glin.github.io/reactable/articles/examples.html#page-size-options
+### See how to customize filter: https://glin.github.io/reactable/articles/custom-filtering.html
+
+
+## {ggplot2}
+
+### See all about transparent backgrounds in SVG: https://github.com/r-lib/svglite/issues/41(led to XML error); https://stackoverflow.com/questions/12226822/how-to-save-a-plot-made-with-ggplot2-as-svg
+
+### Search for scale alternatives without need for {farver} and see ColorBrewer scales: https://ggplot2.tidyverse.org/reference/scale_brewer.html; https://info5940.infosci.cornell.edu/notes/geoviz/optimal-color-palettes/#color-brewer; https://biostats-r.github.io/biostats/workingInR/120_colour_shape_linetypes.html#continuous-colourfill-scales 
+
+### Note scale_fill_distiller() allows one to use ColorBrewer on continuous values: https://biostats-r.github.io/biostats/workingInR/120_colour_shape_linetypes.html#continuous-colourfill-scales
+
+### See all about how to ensure no legend title when using override.aes(): https://aosmith.rbind.io/2020/07/09/ggplot2-override-aes/; https://ggplot2.tidyverse.org/reference/guides.html; https://ggplot2.tidyverse.org/reference/scale_shape.html; https://ggplot2.tidyverse.org/reference/guide_legend.html
+
+### See documentation on scale_gradient(): https://ggplot2.tidyverse.org/reference/scale_gradient.html; https://stackoverflow.com/questions/66274831/how-to-make-all-values-below-a-threshold-have-single-color-with-scale-continuous
+
+### See all named colors in R: http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+
+### See different methods for cropping map: https://www.r-bloggers.com/2019/04/zooming-in-on-maps-with-sf-and-ggplot2/
+
+
+## {sf}
+
+### See methods for cropping map (neither of which worked): https://stackoverflow.com/questions/66031935/ggplot2-and-sf-geom-sf-text-within-limits-set-by-coord-sf; https://datascience.blog.wzb.eu/2019/04/30/zooming-in-on-maps-with-sf-and-ggplot2/ 
+
+### See method for creating an inset map and zoomed bounding box: https://upgo.lab.mcgill.ca/2019/12/13/making-beautiful-maps/#:~:text=size%20%3D%2010)%0A%20%20%20%20)-,Adding%20the%20inset,-We%20now%20have
+
+### Explore how to resolve issues with geometries crossing international dateline: https://stackoverflow.com/questions/58998580/how-to-remedy-a-path-that-crosses-the-international-dateline-with-r; https://gis.stackexchange.com/questions/7064/the-international-date-line-wrap-around; https://gis.stackexchange.com/questions/295158/r-sptransform-polygon-that-crosses-dateline
+
+
+## {tigris}
+
+### See how to deal with AK Aleutian islands crossing international dateline: https://walker-data.com/census-r/census-geographic-data-and-applications-in-r.html#shifting-and-rescaling-geometry-for-national-us-mapping
+
+
+# Session Info ----
+
+sessionInfo()
+# R version 4.1.2 (2021-11-01)
+# Platform: x86_64-w64-mingw32/x64 (64-bit)
+# Running under: Windows 10 x64 (build 19044)
+# 
+# Matrix products: default
+# 
+# locale:
+# [1] LC_COLLATE=English_United States.1252  LC_CTYPE=English_United States.1252   
+# [3] LC_MONETARY=English_United States.1252 LC_NUMERIC=C                          
+# [5] LC_TIME=English_United States.1252    
+# 
+# attached base packages:
+# [1] stats     graphics  grDevices utils     datasets  methods   base     
+# 
+# other attached packages:
+#  [1] here_1.0.1       tigris_2.0.1     skimr_2.1.5      openxlsx_4.2.5.1 reactable_0.4.4 
+#  [6] mapview_2.11.0   forcats_0.5.2    stringr_1.4.1    dplyr_1.0.10     purrr_0.3.5     
+# [11] readr_2.1.3      tidyr_1.2.1      tibble_3.1.8     ggplot2_3.4.0    tidyverse_1.3.2 
+# 
+# loaded via a namespace (and not attached):
+#  [1] fs_1.5.2            sf_1.0-9            satellite_1.0.4     bit64_4.0.5        
+#  [5] lubridate_1.9.0     RColorBrewer_1.1-3  webshot_0.5.4       httr_1.4.4         
+#  [9] rprojroot_2.0.3     repr_1.1.6          tools_4.1.2         backports_1.4.1    
+# [13] utf8_1.2.2          R6_2.5.1            KernSmooth_2.23-20  DBI_1.1.3          
+# [17] colorspace_2.0-3    raster_3.6-20       withr_2.5.0         sp_1.6-0           
+# [21] tidyselect_1.2.0    leaflet_2.1.2       curl_5.0.0          bit_4.0.4          
+# [25] compiler_4.1.2      textshaping_0.3.6   leafem_0.2.0        cli_3.4.1          
+# [29] rvest_1.0.3         xml2_1.3.3          labeling_0.4.2      scales_1.2.1       
+# [33] classInt_0.4-8      proxy_0.4-27        rappdirs_0.3.3      systemfonts_1.0.4  
+# [37] digest_0.6.30       svglite_2.1.1       rmarkdown_2.18      base64enc_0.1-3    
+# [41] pkgconfig_2.0.3     htmltools_0.5.3     dbplyr_2.2.1        fastmap_1.1.0      
+# [45] htmlwidgets_1.5.4   rlang_1.0.6         readxl_1.4.1        rstudioapi_0.14    
+# [49] farver_2.1.1        generics_0.1.3      jsonlite_1.8.4      vroom_1.6.0        
+# [53] crosstalk_1.2.0     zip_2.2.2           googlesheets4_1.0.1 magrittr_2.0.3     
+# [57] Rcpp_1.0.10         munsell_0.5.0       fansi_1.0.3         lifecycle_1.0.3    
+# [61] terra_1.7-18        stringi_1.7.6       yaml_2.3.6          grid_4.1.2         
+# [65] parallel_4.1.2      crayon_1.5.2        lattice_0.20-45     haven_2.5.1        
+# [69] hms_1.1.2           knitr_1.40          pillar_1.8.1        uuid_1.1-0         
+# [73] codetools_0.2-18    stats4_4.1.2        reprex_2.0.2        glue_1.6.2         
+# [77] evaluate_0.18       modelr_0.1.10       png_0.1-8           vctrs_0.5.1        
+# [81] tzdb_0.3.0          cellranger_1.1.0    gtable_0.3.1        reactR_0.4.4       
+# [85] assertthat_0.2.1    xfun_0.36           broom_1.0.1         e1071_1.7-12       
+# [89] ragg_1.2.5          class_7.3-19        googledrive_2.0.0   gargle_1.2.1       
+# [93] units_0.8-0         timechange_0.1.1    ellipsis_0.3.2    
+
+```
+
+
+<br>
+
+<p style="text-align: center; color: #717171;"> Toyin Ola </p>

@@ -68,14 +68,6 @@ mh_svi_2018 <- read_csv( here("data", "mh_svi_county_2018.csv") ) # nrow: 3142
 
 ```
 
-
-```{r}
-
-# ".+:" matches anything before colon, including colon
-
-```
-
-
 ```{r do-some-EDA, eval = FALSE}
 
 # Do Some Quick EDA ----
@@ -893,15 +885,15 @@ targetedStateMap <- function(var_name, state_name, low_color, high_color, stroke
 
 }
 
-# TODO: Download shapefiles for CA and TX.
-
 ```
 
 ```{r provided-template-colors, eval = FALSE}
 
 # One color palette option using both template colors as a starting point is ["#98bddd", "#2480a1", "#2f4fb4", "#1c2c64"]. See aanhpi_option2.
 
-# A second color palette option using only the darkest template color (#192c64) as a starting point is ["#46ebdc", "#6ec1f8", "#15729c", "#1c2c64"]. See aanhpi_option3
+# A second color palette option using only the darkest template color (#192c64) as a starting point is ["#46ebdc", "#6ec1f8", "#15729c", "#1c2c64"]. See aanhpi_option3. 
+
+# Custom color palettes were created using Colorgorical tool: http://vrl.cs.brown.edu/color.
 
 # These function are courtesy of Nicola Rennie's March 2023 R-Ladies Cambridge talk on creating custom color scales: https://nrennie.rbind.io/talks/rladies-cambridge-ggplot2-colours/
 
@@ -1027,7 +1019,6 @@ ggsave(filename = "nhpi_map_template.svg",
 
 
 ```
-
 
 ```{r notes-for-analyst, eval = FALSE}
 
